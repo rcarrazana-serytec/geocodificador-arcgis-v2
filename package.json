@@ -1,0 +1,31 @@
+{
+  "name": "geocodificador-arcgis",
+  "version": "1.2.0",
+  "description": "Geocodificador híbrido multi-formato (REAP + OML) para ArcGIS - SER&TEC",
+  "main": "public/index.html",
+  "author": "SER&TEC SAS",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rcarrazana-serytec/geocodificador-arcgis.git"
+  },
+  "keywords": [
+    "geocodificador",
+    "arcgis",
+    "reap",
+    "oml",
+    "salta",
+    "jujuy",
+    "serytec",
+    "gis",
+    "coordinates"
+  ],
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site - no build needed'",
+    "test": "echo 'No tests configured'"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
