@@ -1,3 +1,4 @@
+html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -198,19 +199,18 @@
             if (lineas.length < 2) { arch++; procSig(); return; }
             const sep = detectarSeparador(lineas[0]);
             
-            // NORMALIZACIÓN: Limpiamos por completo las cabeceras originales de comillas externas para procesar el objeto limpio
+            // Leemos cabeceras limpiando comillas residuales
             const enc = lineas[0].split(sep).map(h => h.replace(/"/g, '').trim());
             if (arch === 0) { columnasOriginales = enc; detectarFormato(columnasOriginales); }
             
             for (let i = 1; i < lineas.length; i++) {
               const lt = lineas[i].trim(); if (!lt) continue;
-              const vals = lt
-  .split(sep)
-  .map(v => v.trim());
+              const vals = lt.split(sep);
               if (vals.length > 0) {
                 const fila = {};
                 enc.forEach((h, idx) => {
                   let v = vals[idx] ? vals[idx].trim() : '';
+                  // Removemos las comillas externas que traiga el dato original para normalizar el objeto
                   if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1).trim();
                   fila[h] = v;
                 });
@@ -306,77 +306,55 @@
     }
 
     function descargarCSV() {
+      const fmt = document.getElementById('formatoDecimal').value;
+      let csv = generarCSV(fmt);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      const hoy = new Date();
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      const año = hoy.getFullYear();
+      const nombreTipo = formatoDetectado === 'REAP' ? 'REAPERTURAS' : 'OML';
+      link.download = `${nombreTipo}_${dia}${mes}${año}_final.csv`;
+      link.click();
+    }
 
-  let csv = generarCSV();
-
-  const blob = new Blob(
-    [csv],
-    { type: 'text/csv;charset=utf-8;' }
-  );
-
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-
-  const hoy = new Date();
-
-  const dia = String(hoy.getDate()).padStart(2, '0');
-  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-  const anio = hoy.getFullYear();
-
-  const nombreTipo =
-    formatoDetectado === 'REAP'
-      ? 'REAPERTURAS'
-      : 'OML';
-
-  link.download =
-    `${nombreTipo}_${dia}${mes}${anio}_final.csv`;
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-   function generarCSV() {
-
-  if (!datosProcessados.length) return '';
-
-  const cols = [
-    ...columnasOriginales,
-    'X',
-    'Y'
-  ];
-
-  let csv = cols.join(';') + '\r\n';
-
-  datosProcessados.forEach(f => {
-
-    const vals = cols.map(col => {
-
-      let v = f[col] ?? '';
-
-      v = String(v)
-        .replace(/\r\n/g, ' ')
-        .replace(/\r/g, ' ')
-        .replace(/\n/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      if (
-        col === 'X' ||
-        col === 'Y' ||
-        col === 'LATITUD' ||
-        col === 'LONGITUD'
-      ) {
-        v = v.replace(',', '.');
-      }
-
-      return v;
-    });
-
-    csv += vals.join(';') + '\r\n';
-  });
-
-  return csv;
-}
+    function generarCSV(fmt = 'coma') {
+      if (!datosProcessados.length) return '';
+      const cols = [...columnasOriginales, 'X', 'Y'];
+      
+      // SOLUCIÓN CRÍTICA: Envolvemos todas las cabeceras en comillas dobles explícitas para ArcGIS
+      let csv = cols.map(c => `"${c}"`).join(';') + '\r\n';
+      
+      datosProcessados.forEach((f) => {
+        const vals = [];
+        for (let i = 0; i < cols.length; i++) {
+          const c = cols[i];
+          let v = f[c] || '';
+          
+          // Limpieza de saltos de línea y caracteres de tabulación
+          v = v.replace(/\r\n/g, ' ').replace(/\r/g, ' ').replace(/\n/g, ' ').replace(/\t/g, ' ');
+          // BLINDAJE EXTRA: Eliminamos cualquier ";" interno de los textos de entrada que rompa las columnas
+          v = v.replace(/;/g, ' ');
+          v = v.replace(/\s+/g, ' ').trim();
+          
+          if (c === 'X' || c === 'Y' || c === 'LATITUD' || c === 'LONGITUD') {
+            if (v !== '') {
+              if (fmt === 'coma') {
+                v = v.replace('.', ',');
+              } else {
+                v = v.replace(',', '.');
+              }
+            }
+          }
+          // Todas las filas se inyectan estrictamente encapsuladas en comillas dobles
+          vals.push(`"${v}"`);
+        }
+        csv += vals.join(';') + '\r\n';
+      });
+      return csv;
+    }
 
     function reiniciar() {
       datosGlobales = []; datosProcessados = []; modoSeleccionado = null; formatoDetectado = null; columnasOriginales = [];
@@ -388,3 +366,5 @@
   </script>
 </body>
 </html>
+
+```
