@@ -204,7 +204,9 @@
             
             for (let i = 1; i < lineas.length; i++) {
               const lt = lineas[i].trim(); if (!lt) continue;
-              const vals = lt.split(sep);
+              const vals = lt
+  .split(sep)
+  .map(v => v.trim());
               if (vals.length > 0) {
                 const fila = {};
                 enc.forEach((h, idx) => {
@@ -304,56 +306,77 @@
     }
 
     function descargarCSV() {
-      const fmt = document.getElementById('formatoDecimal').value;
-      let csv = generarCSV(fmt);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      const hoy = new Date();
-      const dia = String(hoy.getDate()).padStart(2, '0');
-      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-      const año = hoy.getFullYear();
-      const nombreTipo = formatoDetectado === 'REAP' ? 'REAPERTURAS' : 'OML';
-      link.download = `${nombreTipo}_${dia mes}${año}_final.csv`;
-      link.click();
-    }
 
-    function generarCSV(fmt = 'coma') {
-      if (!datosProcessados.length) return '';
-      
-      // EXCELENTE PARA ARCGIS: Cabeceras nativas puras SIN comillas que distorsionen los nombres
-      const cols = [...columnasOriginales, 'X', 'Y'];
-      let csv = cols.join(';') + '\r\n';
-      
-      datosProcessados.forEach((f) => {
-        const vals = [];
-        for (let i = 0; i < cols.length; i++) {
-          const c = cols[i];
-          let v = f[c] || '';
-          
-          v = v.replace(/\r\n/g, ' ').replace(/\r/g, ' ').replace(/\n/g, ' ').replace(/\t/g, ' ');
-          v = v.replace(/;/g, ' '); // Elimina ; internos para no romper columnas fijas
-          v = v.replace(/\s+/g, ' ').trim();
-          
-          if (c === 'X' || c === 'Y' || c === 'LATITUD' || c === 'LONGITUD') {
-            if (v !== '') {
-              if (fmt === 'coma') {
-                v = v.replace('.', ',');
-              } else {
-                v = v.replace(',', '.');
-              }
-            }
-            // Las columnas numéricas van puras sin comillas para forzar la lectura matemática del mapa
-            vals.push(v);
-          } else {
-            // El resto de los textos se exportan limpios
-            vals.push(v);
-          }
-        }
-        csv += vals.join(';') + '\r\n';
-      });
-      return csv;
-    }
+  let csv = generarCSV();
+
+  const blob = new Blob(
+    [csv],
+    { type: 'text/csv;charset=utf-8;' }
+  );
+
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+
+  const hoy = new Date();
+
+  const dia = String(hoy.getDate()).padStart(2, '0');
+  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+  const anio = hoy.getFullYear();
+
+  const nombreTipo =
+    formatoDetectado === 'REAP'
+      ? 'REAPERTURAS'
+      : 'OML';
+
+  link.download =
+    `${nombreTipo}_${dia}${mes}${anio}_final.csv`;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+   function generarCSV() {
+
+  if (!datosProcessados.length) return '';
+
+  const cols = [
+    ...columnasOriginales,
+    'X',
+    'Y'
+  ];
+
+  let csv = cols.join(';') + '\r\n';
+
+  datosProcessados.forEach(f => {
+
+    const vals = cols.map(col => {
+
+      let v = f[col] ?? '';
+
+      v = String(v)
+        .replace(/\r\n/g, ' ')
+        .replace(/\r/g, ' ')
+        .replace(/\n/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (
+        col === 'X' ||
+        col === 'Y' ||
+        col === 'LATITUD' ||
+        col === 'LONGITUD'
+      ) {
+        v = v.replace(',', '.');
+      }
+
+      return v;
+    });
+
+    csv += vals.join(';') + '\r\n';
+  });
+
+  return csv;
+}
 
     function reiniciar() {
       datosGlobales = []; datosProcessados = []; modoSeleccionado = null; formatoDetectado = null; columnasOriginales = [];
