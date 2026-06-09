@@ -241,4 +241,112 @@
       modoSeleccionado = modo;
       document.getElementById('modeLocal').style.background = modo === 'local' ? 'rgba(230,168,23,0.12)' : '#fff';
       document.getElementById('modeAPI').style.background = modo === 'api' ? 'rgba(230,168,23,0.12)' : '#fff';
-      document.getElementById('processBtn').
+      document.getElementById('processBtn').disabled = false;
+    }
+
+    function procesarDatos() {
+      document.getElementById('previewInitialSection').classList.add('hidden');
+      document.getElementById('configSection').classList.add('hidden');
+      document.getElementById('previewSection').classList.remove('hidden');
+      
+      datosProcessados = datosGlobales.map(f => {
+        let latRaw = (f['LATITUD'] || '').replace(',', '.').trim();
+        let lonRaw = (f['LONGITUD'] || '').replace(',', '.').trim();
+        const loc = (f['LOCALIDAD_SERVICIO'] || '').toUpperCase().trim();
+        
+        let numLat = parseFloat(latRaw);
+        let numLon = parseFloat(lonRaw);
+        
+        let lat_final, lon_final, modo;
+        
+        if (!isNaN(numLat) && !isNaN(numLon) && numLat !== 0 && numLon !== 0) {
+          lat_final = numLat.toFixed(6);
+          lon_final = numLon.toFixed(6);
+          modo = 'Original';
+        } else {
+          const c = coordenadaLocalidades[loc];
+          if (c) { 
+            lat_final = c.lat.toFixed(6); 
+            lon_final = c.lon.toFixed(6); 
+            modo = 'Localidad'; 
+          } else { 
+            lat_final = (0).toFixed(6); 
+            lon_final = (0).toFixed(6); 
+            modo = 'No encontrado'; 
+          }
+        }
+        
+        return { ...f, 'LATITUD': lat_final, 'LONGITUD': lon_final, 'X': lon_final, 'Y': lat_final, modo };
+      });
+      mostrarPreview();
+    }
+
+    function mostrarPreview() {
+      const tabla = document.getElementById('previewTable');
+      tabla.innerHTML = '';
+      let con = 0, sin = 0;
+      datosProcessados.forEach(f => {
+        if (parseFloat(f['X']) === 0) sin++; else con++;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${f['NRO_SERVICIO'] || '-'}</td><td>${f['LOCALIDAD_SERVICIO'] || '-'}</td><td>${f['LATITUD']}</td><td>${f['LONGITUD']}</td><td><strong>${f['X']}</strong></td><td><strong>${f['Y']}</strong></td><td>${f['modo']}</td>`;
+        tabla.appendChild(tr);
+      });
+      document.getElementById('processedCount').textContent = datosProcessados.length;
+      document.getElementById('withCoords').textContent = con;
+      document.getElementById('withoutCoords').textContent = sin;
+    }
+
+    function descargarCSV() {
+      let csv = generarCSV();
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      const hoy = new Date();
+      const dia = String(hoy.getDate()).padStart(2, '0');
+      const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+      const año = hoy.getFullYear();
+      const nombreTipo = formatoDetectado === 'REAP' ? 'REAPERTURAS' : 'OML';
+      link.download = `${nombreTipo}_${dia}${mes}${año}_final.csv`;
+      link.click();
+    }
+
+    function generarCSV() {
+      if (!datosProcessados.length) return '';
+      
+      const cols = [...columnasOriginales, 'X', 'Y'];
+      let csv = cols.join(';') + '\r\n';
+      
+      datosProcessados.forEach((f) => {
+        const vals = [];
+        for (let i = 0; i < cols.length; i++) {
+          const c = cols[i];
+          let v = f[c] || '';
+          
+          v = v.replace(/\r\n/g, ' ').replace(/\r/g, ' ').replace(/\n/g, ' ').replace(/\t/g, ' ');
+          v = v.replace(/;/g, ' '); 
+          v = v.replace(/\s+/g, ' ').trim();
+          
+          if (c === 'X' || c === 'Y' || c === 'LATITUD' || c === 'LONGITUD') {
+            if (v !== '') {
+              v = v.replace(',', '.');
+            }
+            vals.push(v);
+          } else {
+            vals.push(v);
+          }
+        }
+        csv += vals.join(';') + '\r\n';
+      });
+      return csv;
+    }
+
+    function reiniciar() {
+      datosGlobales = []; datosProcessados = []; modoSeleccionado = null; formatoDetectado = null; columnasOriginales = [];
+      document.getElementById('fileInput').value = '';
+      document.getElementById('previewInitialSection').classList.add('hidden');
+      document.getElementById('configSection').classList.add('hidden');
+      document.getElementById('previewSection').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
