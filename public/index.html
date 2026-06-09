@@ -111,9 +111,15 @@
             <div style="background: var(--st-gris-fondo); padding: 12px; border-radius: 6px;"><p class="st-label">Sin coords</p><div style="font-size: 28px; font-weight: 700; color: #C0392B;" id="withoutCoords">0</div></div>
           </div>
           <div class="st-table-wrapper"><table class="st-table"><thead><tr><th>NRO_SERVICIO</th><th>LOCALIDAD</th><th>LAT</th><th>LON</th><th>X (Longitud)</th><th>Y (Latitud)</th><th>Modo</th></tr></thead><tbody id="previewTable"></tbody></table></div>
-          <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+          <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
             <button class="st-btn st-btn--ghost" onclick="reiniciar()">Cargar otro</button>
-            <button class="st-btn st-btn--primary" onclick="descargarCSV()">⬇️ Descargar Archivo</button>
+            <label style="font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;">Formato Decimal: 
+              <select id="formatoDecimal" style="padding: 6px 12px; border: 1px solid var(--st-gris-claro); border-radius: 6px; font-size: 13px;">
+                <option value="coma">Coma (,)</option>
+                <option value="punto">Punto (.)</option>
+              </select>
+            </label>
+            <button class="st-btn st-btn--primary" onclick="descargarCSV()">⬇️ Descargar</button>
           </div>
         </div>
       </section>
@@ -192,6 +198,7 @@
             if (lineas.length < 2) { arch++; procSig(); return; }
             const sep = detectarSeparador(lineas[0]);
             
+            // NORMALIZACIÓN: Limpiamos por completo las cabeceras originales de comillas externas para procesar el objeto limpio
             const enc = lineas[0].split(sep).map(h => h.replace(/"/g, '').trim());
             if (arch === 0) { columnasOriginales = enc; detectarFormato(columnasOriginales); }
             
@@ -297,7 +304,8 @@
     }
 
     function descargarCSV() {
-      let csv = generarCSV();
+      const fmt = document.getElementById('formatoDecimal').value;
+      let csv = generarCSV(fmt);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -306,13 +314,14 @@
       const mes = String(hoy.getMonth() + 1).padStart(2, '0');
       const año = hoy.getFullYear();
       const nombreTipo = formatoDetectado === 'REAP' ? 'REAPERTURAS' : 'OML';
-      link.download = `${nombreTipo}_${dia}${mes}${año}_final.csv`;
+      link.download = `${nombreTipo}_${dia mes}${año}_final.csv`;
       link.click();
     }
 
-    function generarCSV() {
+    function generarCSV(fmt = 'coma') {
       if (!datosProcessados.length) return '';
       
+      // EXCELENTE PARA ARCGIS: Cabeceras nativas puras SIN comillas que distorsionen los nombres
       const cols = [...columnasOriginales, 'X', 'Y'];
       let csv = cols.join(';') + '\r\n';
       
@@ -323,15 +332,21 @@
           let v = f[c] || '';
           
           v = v.replace(/\r\n/g, ' ').replace(/\r/g, ' ').replace(/\n/g, ' ').replace(/\t/g, ' ');
-          v = v.replace(/;/g, ' '); 
+          v = v.replace(/;/g, ' '); // Elimina ; internos para no romper columnas fijas
           v = v.replace(/\s+/g, ' ').trim();
           
           if (c === 'X' || c === 'Y' || c === 'LATITUD' || c === 'LONGITUD') {
             if (v !== '') {
-              v = v.replace(',', '.');
+              if (fmt === 'coma') {
+                v = v.replace('.', ',');
+              } else {
+                v = v.replace(',', '.');
+              }
             }
+            // Las columnas numéricas van puras sin comillas para forzar la lectura matemática del mapa
             vals.push(v);
           } else {
+            // El resto de los textos se exportan limpios
             vals.push(v);
           }
         }
