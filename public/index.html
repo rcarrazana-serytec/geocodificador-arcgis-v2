@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Geocode — SER&TEC</title>
+  <title>Geocodificador Híbrido — SER&TEC</title>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght=400;600;700&family=Barlow:wght=300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -339,9 +339,13 @@
 
   if (!datosProcessados.length) return '';
 
-  const cols = [...columnasOriginales, 'X', 'Y'];
+  const cols = [
+    ...columnasOriginales,
+    'X',
+    'Y'
+  ];
 
-  let csv = cols.join(',') + '\r\n';
+  let csv = cols.join(';') + '\r\n';
 
   datosProcessados.forEach(f => {
 
@@ -353,30 +357,22 @@
         .replace(/\r\n/g, ' ')
         .replace(/\r/g, ' ')
         .replace(/\n/g, ' ')
+        .replace(/\s+/g, ' ')
         .trim();
 
-      // Coordenadas siempre con punto decimal
       if (
         col === 'X' ||
         col === 'Y' ||
         col === 'LATITUD' ||
         col === 'LONGITUD'
       ) {
-        return v.replace(',', '.');
-      }
-
-      // Escapado CSV estándar
-      if (
-        v.includes(',') ||
-        v.includes('"')
-      ) {
-        v = '"' + v.replace(/"/g, '""') + '"';
+        v = v.replace(',', '.');
       }
 
       return v;
     });
 
-    csv += vals.join(',') + '\r\n';
+    csv += vals.join(';') + '\r\n';
   });
 
   return csv;
