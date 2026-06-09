@@ -4,559 +4,190 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Geocodificador Híbrido — SER&TEC</title>
-
-  <!-- Fuentes de marca -->
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
-
-  <!-- Design System SER&TEC -->
   <style>
-    /* ============================================================
-       SER&TEC SAS — Design System v1.0
-       ============================================================ */
-
     :root {
-      /* Colores primarios */
-      --st-amarillo:        #E6A817;
-      --st-gris:            #7A7A7A;
-      --st-blanco:          #FFFFFF;
-
-      /* Variantes */
-      --st-amarillo-claro:  #F5C842;
-      --st-amarillo-oscuro: #C08A0E;
-      --st-amarillo-tenue:  rgba(230,168,23,0.12);
-      --st-amarillo-borde:  rgba(230,168,23,0.35);
-
-      --st-gris-oscuro:     #4A4A4A;
-      --st-gris-medio:      #7A7A7A;
-      --st-gris-claro:      #C4C4C4;
-      --st-gris-fondo:      #F4F4F4;
-      --st-gris-superficie: #EBEBEB;
-
-      /* Semánticos */
-      --st-exito:           #2E8B57;
-      --st-error:           #C0392B;
-      --st-advertencia:     #E6A817;
-      --st-info:            #2E6DA4;
-
-      /* Tipografía */
-      --st-font-titulo: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
-      --st-font-cuerpo: 'Barlow', 'Helvetica Neue', Arial, sans-serif;
-      --st-font-mono:   'IBM Plex Mono', 'Courier New', monospace;
-
-      /* Escala tipográfica */
-      --st-text-xs:    11px;
-      --st-text-sm:    13px;
-      --st-text-base:  15px;
-      --st-text-md:    17px;
-      --st-text-lg:    20px;
-      --st-text-xl:    24px;
-      --st-text-2xl:   32px;
-      --st-text-3xl:   42px;
-
-      /* Espaciado */
-      --st-space-xs:  4px;
-      --st-space-sm:  8px;
-      --st-space-md:  16px;
-      --st-space-lg:  24px;
-      --st-space-xl:  40px;
-      --st-space-2xl: 64px;
-
-      /* Bordes y sombras */
-      --st-radius-sm:   3px;
-      --st-radius-md:   6px;
-      --st-radius-lg:   10px;
-      --st-radius-pill: 999px;
-      --st-sombra-sm:   0 1px 4px rgba(0,0,0,0.08);
-      --st-sombra-md:   0 3px 12px rgba(0,0,0,0.10);
-      --st-sombra-lg:   0 8px 32px rgba(0,0,0,0.12);
-      --st-trans:       0.18s ease;
+      --st-amarillo: #E6A817;
+      --st-gris: #7A7A7A;
+      --st-gris-oscuro: #4A4A4A;
+      --st-gris-claro: #C4C4C4;
+      --st-gris-fondo: #F4F4F4;
+      --st-blanco: #FFFFFF;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; scroll-behavior: smooth; }
+    html { font-size: 16px; }
     body {
       background: var(--st-gris-fondo);
       color: var(--st-gris-oscuro);
-      font-family: var(--st-font-cuerpo);
-      font-size: var(--st-text-base);
+      font-family: 'Barlow', Arial, sans-serif;
       line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
     }
 
-    h1,h2,h3,h4,h5,h6 {
-      font-family: var(--st-font-titulo);
-      font-weight: 700;
-      color: var(--st-gris-oscuro);
-      line-height: 1.15;
-      letter-spacing: 0.5px;
-    }
-    h1 { font-size: var(--st-text-3xl); }
-    h2 { font-size: var(--st-text-2xl); }
-    h3 { font-size: var(--st-text-xl);  }
-
-    .st-label {
-      font-size: var(--st-text-xs); font-weight: 600;
-      letter-spacing: 2px; text-transform: uppercase; color: var(--st-gris-medio);
-    }
-    .st-label--gold { color: var(--st-amarillo); }
-
-    /* NAVBAR */
-    .st-navbar {
+    .navbar {
       background: var(--st-blanco);
-      border-bottom: 1px solid var(--st-gris-claro);
-      padding: var(--st-space-md) var(--st-space-lg);
+      padding: 20px 40px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--st-sombra-sm);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
-    .st-navbar__logo {
-      display: flex; align-items: center; gap: var(--st-space-md);
-      font-weight: 700; font-size: var(--st-text-lg);
-    }
-    .st-navbar__logo img { height: 32px; }
-    .st-navbar__tool-name { color: var(--st-gris-oscuro); }
-    .st-navbar__actions { display: flex; gap: var(--st-space-sm); }
-
-    /* PAGE */
-    .st-page { padding: var(--st-space-2xl) 0; min-height: calc(100vh - 80px); }
-    .st-container { max-width: 1200px; margin: 0 auto; padding: 0 var(--st-space-lg); }
-
-    /* SECTION */
-    .st-section { margin-bottom: var(--st-space-2xl); }
-    .st-section__header { margin-bottom: var(--st-space-lg); }
-
-    /* GRID */
-    .st-grid-3 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: var(--st-space-lg);
-    }
-
-    /* CARD */
-    .st-card {
-      background: var(--st-blanco);
-      border: 1px solid var(--st-gris-claro);
-      border-radius: var(--st-radius-lg);
-      box-shadow: var(--st-sombra-sm);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transition: all var(--st-trans);
-    }
-    .st-card:hover { box-shadow: var(--st-sombra-md); }
-    .st-card--accent { background: var(--st-amarillo-tenue); border-color: var(--st-amarillo-borde); border-width: 2px; }
-    .st-card__header {
-      padding: var(--st-space-lg);
-      border-bottom: 1px solid var(--st-gris-claro);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .st-card__title { font-size: var(--st-text-lg); font-weight: 700; color: var(--st-gris-oscuro); }
-    .st-card__body { padding: var(--st-space-lg); flex: 1; }
-    .st-card__footer {
-      padding: var(--st-space-lg);
-      border-top: 1px solid var(--st-gris-claro);
-      display: flex;
-      gap: var(--st-space-sm);
-      justify-content: flex-end;
-      flex-wrap: wrap;
-    }
-
-    /* BUTTONS */
-    .st-btn {
-      padding: 10px 20px;
-      border: 1px solid var(--st-gris-claro);
-      border-radius: var(--st-radius-md);
-      background: var(--st-blanco);
-      color: var(--st-gris-oscuro);
-      font-family: var(--st-font-cuerpo);
-      font-size: var(--st-text-sm);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all var(--st-trans);
-    }
-    .st-btn:hover { border-color: var(--st-gris-oscuro); }
-    .st-btn--primary {
-      background: var(--st-amarillo);
-      color: var(--st-blanco);
-      border-color: var(--st-amarillo);
-    }
-    .st-btn--primary:hover { background: var(--st-amarillo-oscuro); border-color: var(--st-amarillo-oscuro); }
-    .st-btn--ghost { background: transparent; border-color: transparent; }
-    .st-btn--sm { padding: 8px 16px; font-size: var(--st-text-xs); }
-    .st-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* FORM */
-    .st-form-group {
-      margin-bottom: var(--st-space-lg);
-      display: flex;
-      flex-direction: column;
-      gap: var(--st-space-sm);
-    }
-    .st-label-form {
-      font-size: var(--st-text-sm);
-      font-weight: 600;
-      color: var(--st-gris-oscuro);
-    }
-    .st-input, .st-select, .st-textarea {
-      padding: 10px 12px;
-      border: 1px solid var(--st-gris-claro);
-      border-radius: var(--st-radius-md);
-      font-family: var(--st-font-cuerpo);
-      font-size: var(--st-text-sm);
-      color: var(--st-gris-oscuro);
-    }
-    .st-input:focus, .st-select:focus, .st-textarea:focus {
-      outline: none;
-      border-color: var(--st-amarillo);
-      box-shadow: 0 0 0 3px var(--st-amarillo-tenue);
-    }
-
-    /* UPLOAD */
-    .st-upload {
-      border: 2px dashed var(--st-amarillo-borde);
-      border-radius: var(--st-radius-lg);
-      padding: var(--st-space-xl);
+    .navbar h1 { font-size: 24px; color: var(--st-gris-oscuro); font-weight: 600; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+    .section { margin-bottom: 40px; }
+    .section h2 { font-size: 20px; color: var(--st-amarillo); margin-bottom: 20px; font-weight: 600; }
+    
+    .upload-area {
+      border: 3px dashed var(--st-amarillo);
+      border-radius: 10px;
+      padding: 40px;
       text-align: center;
-      background: var(--st-amarillo-tenue);
       cursor: pointer;
-      transition: all var(--st-trans);
+      background: rgba(230, 168, 23, 0.05);
+      transition: all 0.3s;
     }
-    .st-upload:hover { border-color: var(--st-amarillo); background: rgba(230,168,23,0.18); }
-    .st-upload__icon { color: var(--st-amarillo); margin-bottom: var(--st-space-md); }
-    .st-upload__title { font-size: var(--st-text-lg); font-weight: 700; color: var(--st-gris-oscuro); margin-bottom: var(--st-space-sm); }
-    .st-upload__sub { font-size: var(--st-text-sm); color: var(--st-gris-medio); }
+    .upload-area:hover { border-color: var(--st-gris-oscuro); }
+    .upload-area p { color: var(--st-gris); font-size: 16px; }
 
-    /* BADGE */
-    .st-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: var(--st-radius-pill);
-      font-size: var(--st-text-xs);
+    input[type="file"] {
+      padding: 10px;
+      border: 2px solid var(--st-amarillo);
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button {
+      background: var(--st-amarillo);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      margin: 10px 10px 10px 0;
+      transition: background 0.3s;
     }
-    .st-badge--gold { background: var(--st-amarillo-tenue); color: var(--st-amarillo-oscuro); }
-    .st-badge--gray { background: var(--st-gris-fondo); color: var(--st-gris-medio); }
-    .st-badge--success { background: rgba(46,139,87,0.12); color: var(--st-exito); }
+    button:hover { background: #C08A0E; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
 
-    /* TABLE */
-    .st-table {
+    .hidden { display: none !important; }
+    .success { background: #d5f4e6; color: #27ae60; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    .error { background: #fadbd8; color: #c0392b; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+
+    table {
       width: 100%;
       border-collapse: collapse;
-      font-size: var(--st-text-sm);
-    }
-    .st-table thead {
-      background: var(--st-gris-fondo);
-      border-bottom: 2px solid var(--st-gris-claro);
-    }
-    .st-table th {
-      padding: 12px;
-      text-align: left;
-      font-weight: 700;
-      color: var(--st-gris-oscuro);
-    }
-    .st-table td {
-      padding: 12px;
-      border-bottom: 1px solid var(--st-gris-claro);
-    }
-    .st-table tbody tr:hover { background: var(--st-gris-fondo); }
-
-    /* PROGRESS */
-    .st-progress {
-      width: 100%;
-      height: 8px;
-      background: var(--st-gris-claro);
-      border-radius: var(--st-radius-pill);
+      margin-top: 20px;
+      font-size: 12px;
+      background: white;
+      border-radius: 5px;
       overflow: hidden;
     }
-    .st-progress__bar {
-      height: 100%;
-      background: var(--st-amarillo);
-      transition: width 0.3s ease;
-    }
+    thead { background: #f0f0f0; font-weight: 600; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+    tbody tr:hover { background: #f9f9f9; }
 
-    /* ALERT */
-    .st-alert {
-      padding: var(--st-space-md);
-      border-radius: var(--st-radius-md);
-      border-left: 4px solid var(--st-info);
-      font-size: var(--st-text-sm);
-      line-height: 1.5;
+    .mode-selector {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
     }
-    .st-alert--info { background: rgba(46,109,164,0.08); color: var(--st-info); border-color: var(--st-info); }
-
-    /* FOOTER */
-    .st-footer {
-      background: var(--st-gris-oscuro);
-      color: var(--st-blanco);
-      padding: var(--st-space-lg);
-      text-align: center;
-      margin-top: var(--st-space-2xl);
-      font-size: var(--st-text-sm);
+    .mode-card {
+      flex: 1;
+      padding: 20px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
     }
-    .st-footer__brand { font-size: var(--st-text-lg); font-weight: 700; }
-    .st-ampersand { color: var(--st-amarillo); font-weight: 300; }
-
-    /* CUSTOM */
-    .hidden { display: none; }
-    .st-table-wrapper { overflow-x: auto; max-height: 600px; overflow-y: auto; }
+    .mode-card:hover { border-color: var(--st-amarillo); background: rgba(230, 168, 23, 0.05); }
+    .mode-card.active { border-color: var(--st-amarillo); background: rgba(230, 168, 23, 0.1); }
+    .mode-card h3 { color: var(--st-gris-oscuro); margin-bottom: 8px; }
+    .mode-card p { font-size: 13px; color: var(--st-gris); }
   </style>
 </head>
 <body>
+  <div class="navbar">
+    <h1>📍 Geocodificador Híbrido — SER&TEC</h1>
+    <span style="color: var(--st-gris); font-size: 13px;">Salta & Jujuy</span>
+  </div>
 
-  <!-- NAVBAR -->
-  <nav class="st-navbar">
-    <div class="st-navbar__logo">
-      <img src="LogoST.png" alt="Ser&Tec logo" style="height: 32px;">
-      <span class="st-navbar__tool-name">Geocodificador Híbrido</span>
+  <div class="container">
+    <!-- SECCIÓN 1: CARGAR -->
+    <div class="section">
+      <h2>1. Cargar archivo(s)</h2>
+      <p style="color: var(--st-gris); margin-bottom: 15px;">✅ Puedes seleccionar múltiples archivos REAP u OML</p>
+      <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <p style="font-size: 32px; margin-bottom: 10px;">📁</p>
+        <p><strong>Arrastrá tus archivos aquí</strong></p>
+        <p style="font-size: 12px; margin-top: 5px;">o hacé click para seleccionar</p>
+      </div>
+      <input type="file" id="fileInput" accept=".txt,.csv" multiple style="display: none;" />
+      <button onclick="cargarArchivos()" style="margin-top: 15px;">📁 Cargar archivo(s)</button>
     </div>
-    <div class="st-navbar__actions">
-      <button class="st-btn st-btn--primary st-btn--sm" onclick="alert('Soporte técnico en desarrollo')">Ayuda</button>
+
+    <div id="mensajeDiv"></div>
+
+    <!-- SECCIÓN 2: DATOS -->
+    <div class="section hidden" id="datosSection">
+      <h2>2. Datos cargados</h2>
+      <p id="infoRegistros" style="color: var(--st-gris); margin-bottom: 15px;"></p>
+      <div style="overflow-x: auto; max-height: 300px; overflow-y: auto;">
+        <table id="tablaDatos">
+          <thead>
+            <tr id="encabezados"></tr>
+          </thead>
+          <tbody id="datosTabla"></tbody>
+        </table>
+      </div>
     </div>
-  </nav>
 
-  <!-- MAIN -->
-  <main class="st-page">
-    <div class="st-container">
-
-      <!-- ENCABEZADO -->
-      <section class="st-section">
-        <div class="st-section__header">
-          <p class="st-label st-label--gold">Herramientas GIS · ArcGIS</p>
-          <h1>Geocodificador Híbrido Multi-Formato</h1>
-          <p style="color: var(--st-gris-medio); margin-top: 8px; margin-bottom: 0;">
-            Carga archivos REAP o OML y obtén coordenadas X/Y calculadas automáticamente.
-          </p>
+    <!-- SECCIÓN 3: PROCESAR -->
+    <div class="section hidden" id="procesarSection">
+      <h2>3. Procesamiento</h2>
+      
+      <p style="color: var(--st-gris); margin-bottom: 15px;">Selecciona modo de geocodificación:</p>
+      <div class="mode-selector">
+        <div class="mode-card active" onclick="cambiarModo('local', this)">
+          <h3>⚡ Rápido (BD Local)</h3>
+          <p>Usa base de datos local. Instantáneo.</p>
         </div>
-      </section>
-
-      <!-- SECCIÓN 1: CARGA DE ARCHIVO -->
-      <section class="st-section">
-        <div class="st-section__header"><h2>1. Cargar archivo</h2></div>
-        
-        <div class="st-upload" id="uploadArea">
-          <div class="st-upload__icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
-              <polyline points="16 16 12 12 8 16"></polyline>
-              <line x1="12" y1="12" x2="12" y2="21"></line>
-              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
-            </svg>
-          </div>
-          <div class="st-upload__title">Arrastrá tu archivo aquí</div>
-          <div class="st-upload__sub">o hacé click para seleccionar · REAP (.txt) u OML (.csv)</div>
-        </div>
-        <!-- Input file oculto pero clickeable -->
-        <input type="file" id="fileInput" accept=".txt,.csv" multiple style="position: absolute; left: -9999px; opacity: 0; width: 1px; height: 1px;" />
-      </section>
-
-      <!-- SECCIÓN 2: PREVIEW INICIAL -->
-      <section class="st-section hidden" id="previewInitialSection">
-        <div class="st-section__header">
-          <h2>2. Vista previa de datos originales</h2>
-          <div id="formatDetected" class="st-alert st-alert--info" style="margin-top: 12px;"></div>
-        </div>
-
-        <div class="st-card">
-          <div class="st-card__body">
-            <div style="margin-bottom: 20px;">
-              <div class="st-label">Total registros</div>
-              <div style="font-size: 28px; font-weight: 700; color: var(--st-amarillo);" id="totalRowCount">0</div>
-            </div>
-
-            <div class="st-table-wrapper">
-              <table class="st-table">
-                <thead>
-                  <tr>
-                    <th>NRO_SERVICIO</th>
-                    <th>LOCALIDAD</th>
-                    <th>LAT Original</th>
-                    <th>LON Original</th>
-                  </tr>
-                </thead>
-                <tbody id="previewInitialTable"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECCIÓN 3: SELECCIONAR MODO -->
-      <section class="st-section hidden" id="configSection">
-        <div class="st-section__header"><h2>3. Seleccionar modo de geocodificación</h2></div>
-
-        <div class="st-grid-3">
-          <div class="st-card" style="cursor: pointer; border: 2px solid var(--st-gris-claro);" onclick="selectMode('local')" id="modeLocal">
-            <div class="st-card__body">
-              <div style="font-size: 32px; margin-bottom: 12px;">⚡</div>
-              <div class="st-card__title">Rápido</div>
-              <p style="font-size: var(--st-text-sm); color: var(--st-gris-medio); margin-top: 8px;">BD Local por localidad · Instantáneo</p>
-            </div>
-          </div>
-
-          <div class="st-card" style="cursor: pointer; border: 2px solid var(--st-gris-claro);" onclick="selectMode('api')" id="modeAPI">
-            <div class="st-card__body">
-              <div style="font-size: 32px; margin-bottom: 12px;">🎯</div>
-              <div class="st-card__title">Preciso</div>
-              <p style="font-size: var(--st-text-sm); color: var(--st-gris-medio); margin-top: 8px;">API Nominatim · Dirección exacta</p>
-            </div>
-          </div>
-        </div>
-
-        <div id="modeInfo" class="st-alert st-alert--info" style="margin-top: 20px; display: none;"></div>
-
-        <div class="st-card" style="margin-top: 20px;">
-          <div class="st-card__body">
-            <div class="st-card__footer" style="border: none; padding: 0;">
-              <button class="st-btn st-btn--ghost" onclick="reiniciar()">Cancelar</button>
-              <button class="st-btn st-btn--primary" id="processBtn" onclick="procesarDatos()" disabled>Procesar datos</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- SECCIÓN 4: RESULTADOS -->
-      <section class="st-section hidden" id="previewSection">
-        <div class="st-section__header">
-          <h2>4. Resultados procesados</h2>
-        </div>
-
-        <div id="geocodingContainer" class="st-alert st-alert--info" style="display: none; margin-bottom: 20px;">
-          ⏳ Geocodificando registros...
-          <div class="st-progress" style="margin-top: 12px;">
-            <div class="st-progress__bar" id="geoProgressFill" style="width: 0%;"></div>
-          </div>
-          <div style="font-size: var(--st-text-sm); margin-top: 8px;" id="geoStatus">Procesando: 0/0</div>
-        </div>
-
-        <div class="st-card">
-          <div class="st-card__body">
-            <div style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-              <div style="background: var(--st-gris-fondo); padding: 12px; border-radius: var(--st-radius-md);">
-                <div class="st-label">Procesados</div>
-                <div style="font-size: 28px; font-weight: 700; color: var(--st-gris-oscuro);" id="processedCount">0</div>
-              </div>
-              <div style="background: var(--st-gris-fondo); padding: 12px; border-radius: var(--st-radius-md);">
-                <div class="st-label">Con coords</div>
-                <div style="font-size: 28px; font-weight: 700; color: var(--st-exito);" id="withCoords">0</div>
-              </div>
-              <div style="background: var(--st-gris-fondo); padding: 12px; border-radius: var(--st-radius-md);">
-                <div class="st-label">Sin coords</div>
-                <div style="font-size: 28px; font-weight: 700; color: #C0392B;" id="withoutCoords">0</div>
-              </div>
-            </div>
-
-            <div class="st-progress" style="margin-bottom: 20px;">
-              <div class="st-progress__bar" id="progressFill" style="width: 0%;"></div>
-            </div>
-
-            <div class="st-table-wrapper">
-              <table class="st-table">
-                <thead>
-                  <tr>
-                    <th>NRO_SERVICIO</th>
-                    <th>LOCALIDAD</th>
-                    <th>LAT Orig</th>
-                    <th>LON Orig</th>
-                    <th>X Calc</th>
-                    <th>Y Calc</th>
-                    <th>Modo</th>
-                  </tr>
-                </thead>
-                <tbody id="previewTable"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="st-card__footer">
-            <button class="st-btn st-btn--ghost" onclick="reiniciar()">Cargar otro</button>
-            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-              <label style="font-size: var(--st-text-sm); font-weight: 600; color: var(--st-gris-oscuro);">
-                Formato decimal:
-                <select id="formatoDecimal" style="margin-left: 8px; padding: 6px 12px; border: 1px solid var(--st-gris-claro); border-radius: var(--st-radius-md); font-size: var(--st-text-sm);" onchange="actualizarVistaPrevia()">
-                  <option value="coma">Coma (,)</option>
-                  <option value="punto">Punto (.)</option>
-                </select>
-              </label>
-              <button class="st-btn st-btn--primary" onclick="mostrarPreviewCSV()">👁️ Previsualizar CSV</button>
-              <button class="st-btn st-btn--primary" onclick="descargarCSV()">⬇️ Descargar CSV</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- MODAL PREVISUALIZACIÓN CSV -->
-      <div id="modalPreview" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; overflow-y: auto;">
-        <div style="background: var(--st-blanco); border-radius: var(--st-radius-lg); max-width: 1000px; margin: 40px auto; padding: 0; box-shadow: var(--st-sombra-lg); display: flex; flex-direction: column; max-height: 80vh;">
-          
-          <!-- Header Modal -->
-          <div style="padding: var(--st-space-lg); border-bottom: 1px solid var(--st-gris-claro); display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="margin: 0; font-size: var(--st-text-xl);">Previsualización CSV</h2>
-            <button class="st-btn st-btn--ghost" onclick="document.getElementById('modalPreview').style.display = 'none'" style="padding: 4px 8px; font-size: 20px;">✕</button>
-          </div>
-          
-          <!-- Info CSV -->
-          <div style="padding: var(--st-space-lg); background: var(--st-gris-fondo); border-bottom: 1px solid var(--st-gris-claro); display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
-            <div>
-              <div class="st-label">Columnas</div>
-              <div style="font-size: 20px; font-weight: 700;" id="previewColCount">-</div>
-            </div>
-            <div>
-              <div class="st-label">Filas (datos)</div>
-              <div style="font-size: 20px; font-weight: 700;" id="previewRowCount">-</div>
-            </div>
-            <div>
-              <div class="st-label">Separador</div>
-              <div style="font-size: 20px; font-weight: 700;" id="previewSeparador">;</div>
-            </div>
-            <div>
-              <div class="st-label">Formato XY</div>
-              <div style="font-size: 20px; font-weight: 700;" id="previewFormato">-</div>
-            </div>
-          </div>
-          
-          <!-- Tabla Previsualización -->
-          <div style="flex: 1; overflow: auto; padding: var(--st-space-lg);">
-            <div class="st-table-wrapper" style="max-height: none;">
-              <table class="st-table" style="margin: 0;">
-                <thead>
-                  <tr id="previewHeader"></tr>
-                </thead>
-                <tbody id="previewBody"></tbody>
-              </table>
-            </div>
-          </div>
-          
-          <!-- Footer Modal -->
-          <div style="padding: var(--st-space-lg); border-top: 1px solid var(--st-gris-claro); display: flex; gap: 12px; justify-content: flex-end;">
-            <button class="st-btn st-btn--ghost" onclick="document.getElementById('modalPreview').style.display = 'none'">Cerrar</button>
-            <button class="st-btn st-btn--primary" onclick="descargarCSV(); document.getElementById('modalPreview').style.display = 'none'">⬇️ Descargar</button>
-          </div>
+        <div class="mode-card" onclick="cambiarModo('api', this)">
+          <h3>🎯 Preciso (API)</h3>
+          <p>Usa Nominatim. Más exacto pero lento.</p>
         </div>
       </div>
 
-    </div>
-  </main>
+      <label style="display: block; margin-bottom: 15px;">
+        <strong>Formato decimal:</strong>
+        <select id="formatoDecimal" style="padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 5px;">
+          <option value="punto">Punto (.)</option>
+          <option value="coma">Coma (,)</option>
+        </select>
+      </label>
 
-  <!-- FOOTER -->
-  <footer class="st-footer">
-    <div class="st-footer__brand">
-      SER<span class="st-ampersand">&</span>TEC <span style="font-weight:300; font-size: 13px; letter-spacing: 2px;">SAS</span>
+      <button onclick="procesarDatos()">⚙️ Procesar datos</button>
     </div>
-    <div style="opacity: 0.8; margin-top: 8px;">© 2025 · Servicios y Tecnología · Geocodificador Híbrido · Tucumán, Argentina</div>
-  </footer>
+
+    <!-- SECCIÓN 4: DESCARGAR -->
+    <div class="section hidden" id="descargarSection">
+      <h2>4. Descargar resultado</h2>
+      <p id="previewInfo" style="color: var(--st-gris); margin-bottom: 15px;"></p>
+      <button onclick="descargar()" id="btnDescargar">⬇️ Descargar CSV</button>
+    </div>
+  </div>
 
   <script>
-    let datosGlobales = [];
-    let datosProcessados = [];
-    let modoSeleccionado = null;
-    let formatoDetectado = null;
-    let columnasOriginales = [];
-    
-    // ✅ COORDENADAS CON PUNTO DECIMAL (no COMA) para evitar conflictos en CSV
+    // ============================================================================
+    // VARIABLES GLOBALES
+    // ============================================================================
+    let datosOriginales = [];
+    let datosProcesados = [];
+    let encabezados = [];
+    let modoSeleccionado = 'local';
+
+    // Base de datos local con 40 localidades
     const coordenadaLocalidades = {
       'SALTA': {lat: '-24.789322', lon: '-65.410351'},
       'PICHANAL': {lat: '-24.068', lon: '-65.133'},
@@ -599,542 +230,231 @@
       'VILLA JARDIN DE REYES': {lat: '-24.355', lon: '-65.465'}
     };
 
-    // ✅ Inicializar cuando el DOM esté listo
-    function inicializarUpload() {
-      const uploadArea = document.getElementById('uploadArea');
-      const fileInput = document.getElementById('fileInput');
-      
-      console.log('🔍 Inicializando upload...', {
-        uploadArea: !!uploadArea,
-        fileInput: !!fileInput,
-        readyState: document.readyState
-      });
-      
-      if (!uploadArea || !fileInput) {
-        console.warn('⚠️ Elementos no encontrados, reintentando...');
-        setTimeout(inicializarUpload, 100);
-        return;
-      }
-      
-      // Event: Click directo
-      uploadArea.addEventListener('click', (e) => {
-        console.log('✅ Click en uploadArea');
-        fileInput.click();
-      });
-      
-      // Event: Drag over
-      uploadArea.addEventListener('dragover', (e) => { 
-        e.preventDefault(); 
-        uploadArea.style.borderColor = 'var(--st-amarillo)'; 
-      });
-      
-      // Event: Drag leave
-      uploadArea.addEventListener('dragleave', () => { 
-        uploadArea.style.borderColor = ''; 
-      });
-      
-      // Event: Drop
-      uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.style.borderColor = '';
-        console.log('✅ Archivos dropeados:', e.dataTransfer.files.length);
-        if (e.dataTransfer.files.length) procesarArchivo(e.dataTransfer.files[0]);
-      });
-      
-      // Event: File input change
-      fileInput.addEventListener('change', (e) => {
-        console.log('✅ Archivos seleccionados:', e.target.files.length);
-        if (e.target.files.length) procesarArchivo(e.target.files[0]);
-      });
-      
-      console.log('✅ Upload inicializado correctamente');
-    }
-    
-    // Ejecutar después de que el DOM se cargue
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', inicializarUpload);
-    } else {
-      inicializarUpload();
-    }
+    // ============================================================================
+    // FUNCIONES GLOBALES
+    // ============================================================================
 
-    function detectarSeparador(primerLinea) {
-      // Contar ocurrencias de cada separador potencial
+    function detectarSeparador(linea) {
       const contadores = {
-        '\t': (primerLinea.match(/\t/g) || []).length,
-        ',': (primerLinea.match(/,/g) || []).length,
-        ';': (primerLinea.match(/;/g) || []).length
+        '\t': (linea.match(/\t/g) || []).length,
+        ',': (linea.match(/,/g) || []).length,
+        ';': (linea.match(/;/g) || []).length
       };
-
-      // El separador más probable es el que más aparece
-      let separadorMasProbable = '\t'; // Default
-      let maxOcurrencias = 0;
-
-      for (const [sep, count] of Object.entries(contadores)) {
-        if (count > maxOcurrencias) {
-          maxOcurrencias = count;
-          separadorMasProbable = sep;
+      let separador = '\t';
+      let max = 0;
+      for (let sep in contadores) {
+        if (contadores[sep] > max) {
+          max = contadores[sep];
+          separador = sep;
         }
       }
-
-      return separadorMasProbable;
+      return separador;
     }
 
-    function procesarArchivo(file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          let contenido = e.target.result;
-          
-          // ✅ LIMPIEZA MÍNIMA: Solo eliminar BOM y normalizar saltos de línea
-          contenido = contenido
-            .replace(/\uFEFF/g, '')             // Eliminar BOM
-            .replace(/\r\n/g, '\n')             // CRLF → LF
-            .replace(/\r/g, '\n')               // CR → LF
-            .trim();
-          
-          let lineas = contenido.split('\n');
-          
-          if (lineas.length < 2) { 
-            alert('El archivo debe tener encabezados y al menos un registro'); 
-            return; 
-          }
-          
-          // Limpiar líneas vacías
-          lineas = lineas.filter(l => l.trim().length > 0);
-          
-          if (lineas.length < 2) {
-            alert('El archivo no tiene datos válidos');
-            return;
-          }
-          
-          // DETECTAR SEPARADOR automáticamente
-          const separador = detectarSeparador(lineas[0]);
-          
-          const encabezados = lineas[0].split(separador);
-          columnasOriginales = encabezados.map(h => h.trim());
-          
-          detectarFormato(columnasOriginales);
-          
-          datosGlobales = [];
-          for (let i = 1; i < lineas.length; i++) {
-            const lineaTrimmed = lineas[i].trim();
-            if (!lineaTrimmed) continue;
-            
-            const valores = lineaTrimmed.split(separador);
-            if (valores.length > 0) {
-              const fila = {};
-              encabezados.forEach((header, idx) => {
-                const headerLimpio = header.trim();
-                let valor = valores[idx] ? valores[idx].trim() : '';
-                
-                // Solo limpiar LAT/LON de saltos de línea (en caso de que los tengan)
-                if (headerLimpio === 'LATITUD' || headerLimpio === 'LONGITUD') {
-                  valor = valor.replace(/[\r\n]/g, '').trim();
-                }
-                
-                fila[headerLimpio] = valor;
-              });
-              
-              // Solo agregar si tiene NRO_SERVICIO o algún identificador
-              if (fila['NRO_SERVICIO'] || fila['NRO_LIST_REAPER']) {
-                datosGlobales.push(fila);
-              }
-            }
-          }
-          
-          if (datosGlobales.length === 0) {
-            alert(`No se encontraron registros válidos. Se detectaron ${lineas.length - 1} líneas.`);
-            return;
-          }
-          
-          console.log(`✅ Cargados ${datosGlobales.length} registros`);
-          mostrarPreviewInicial();
-          
-        } catch (error) {
-          alert('Error procesando archivo: ' + error.message);
-          console.error(error);
-        }
-      };
-      reader.readAsText(file, 'utf-8');
-    }
-
-    function detectarFormato(encabezados) {
-      if (encabezados.includes('NRO_LIST_REAPER')) {
-        formatoDetectado = 'REAP';
-      } else if (encabezados.includes('NRO_ASIG_OML_CONT')) {
-        formatoDetectado = 'OML';
-      } else {
-        formatoDetectado = 'DESCONOCIDO';
-      }
-    }
-
-    function mostrarPreviewInicial() {
-      document.getElementById('previewInitialSection').classList.remove('hidden');
-      document.getElementById('configSection').classList.remove('hidden');
-      document.getElementById('previewSection').classList.add('hidden');
-      
-      const badge = document.getElementById('formatDetected');
-      badge.textContent = `📋 Formato: ${formatoDetectado} | ${datosGlobales.length} registros`;
-      
-      document.getElementById('totalRowCount').textContent = datosGlobales.length;
-      
-      const tabla = document.getElementById('previewInitialTable');
-      tabla.innerHTML = '';
-      
-      datosGlobales.forEach(fila => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${fila['NRO_SERVICIO'] || '-'}</td>
-          <td>${fila['LOCALIDAD_SERVICIO'] || '-'}</td>
-          <td>${fila['LATITUD'] || '(vacío)'}</td>
-          <td>${fila['LONGITUD'] || '(vacío)'}</td>
-        `;
-        tabla.appendChild(tr);
-      });
-
-      document.getElementById('modeLocal').classList.add('st-card--accent');
-      modoSeleccionado = 'local';
-      actualizarModoInfo();
-    }
-
-    function selectMode(modo) {
-      modoSeleccionado = modo;
-      document.getElementById('modeLocal').classList.toggle('st-card--accent', modo === 'local');
-      document.getElementById('modeAPI').classList.toggle('st-card--accent', modo === 'api');
-      actualizarModoInfo();
-      document.getElementById('processBtn').disabled = false;
-    }
-
-    function actualizarModoInfo() {
-      const modeInfo = document.getElementById('modeInfo');
-      modeInfo.classList.remove('hidden');
-      
-      if (modoSeleccionado === 'local') {
-        modeInfo.textContent = '⚡ Modo Rápido: Geocodificación instantánea utilizando base de datos local de localidades.';
-      } else {
-        if (datosGlobales.length > 50) {
-          modeInfo.textContent = `⚠️ Modo Preciso: ${datosGlobales.length} registros. API lenta (~1 seg/registro). Se recomienda máximo 50 registros.`;
-        } else {
-          modeInfo.textContent = `🎯 Modo Preciso: Dirección exacta mediante API Nominatim. ${datosGlobales.length} registros (~${datosGlobales.length} segundos).`;
-        }
-      }
-    }
-
-    async function procesarDatos() {
-      document.getElementById('previewInitialSection').classList.add('hidden');
-      document.getElementById('configSection').classList.add('hidden');
-      document.getElementById('previewSection').classList.remove('hidden');
-      
-      if (modoSeleccionado === 'local') {
-        procesarLocal();
-      } else {
-        await procesarAPI();
-      }
-    }
-
-    function procesarLocal() {
-      datosProcessados = datosGlobales.map(fila => {
-        const latOrig = fila['LATITUD'] || '';
-        const lonOrig = fila['LONGITUD'] || '';
-        const localidad = (fila['LOCALIDAD_SERVICIO'] || '').toUpperCase().trim();
-        
-        let x, y, modo;
-        
-        // Si tiene coordenadas válidas en el archivo original
-        if (latOrig && lonOrig && latOrig !== '0' && latOrig.toLowerCase() !== 'nan') {
-          x = formatearCoordenada(lonOrig);
-          y = formatearCoordenada(latOrig);
-          modo = 'Original';
-        } else {
-          // Buscar en BD local por localidad
-          const coords = coordenadaLocalidades[localidad];
-          if (coords) {
-            x = coords.lon;   // Ya tiene PUNTO
-            y = coords.lat;   // Ya tiene PUNTO
-            modo = 'Localidad';
-          } else {
-            x = '';
-            y = '';
-            modo = 'No encontrado';
-          }
-        }
-        
-        // ✅ Crear objeto LIMPIO: copiar SOLO columnas válidas + X, Y
-        const resultado = {};
-        
-        // Copiar solo las columnas originales que existen
-        columnasOriginales.forEach(col => {
-          resultado[col] = fila[col] || '';
-        });
-        
-        // Agregar coordenadas (con PUNTO internamente)
-        resultado['X'] = x;
-        resultado['Y'] = y;
-        resultado['modo'] = modo;
-        
-        return resultado;
-      });
-      
-      mostrarPreview();
-    }
-
-    async function procesarAPI() {
-      document.getElementById('geocodingContainer').style.display = 'block';
-      datosProcessados = [];
-      
-      for (let i = 0; i < datosGlobales.length; i++) {
-        const fila = datosGlobales[i];
-        const latOrig = fila['LATITUD'] || '';
-        const lonOrig = fila['LONGITUD'] || '';
-        const localidad = (fila['LOCALIDAD_SERVICIO'] || '').toUpperCase();
-        
-        let x, y, modo;
-        
-        if (latOrig && lonOrig && latOrig !== '0' && latOrig.toLowerCase() !== 'nan') {
-          x = formatearCoordenada(lonOrig);
-          y = formatearCoordenada(latOrig);
-          modo = 'Original';
-        } else {
-          const calle = fila['CALLE_SERVICIO'] || '';
-          const numero = fila['NRO_CALLE_SERVICIO'] || '';
-          const provincia = fila['PROVINCIA_SERVICIO'] || '';
-          
-          try {
-            const response = await fetch('/.netlify/functions/geocodificar', {
-              method: 'POST',
-              body: JSON.stringify({ calle, numero, localidad, provincia })
-            });
-            const data = await response.json();
-            
-            if (data.success) {
-              x = data.lon;
-              y = data.lat;
-              modo = 'API';
-            } else {
-              const coords = coordenadaLocalidades[localidad];
-              x = coords ? coords.lon : '';
-              y = coords ? coords.lat : '';
-              modo = coords ? 'Fallback' : 'No encontrado';
-            }
-          } catch (error) {
-            const coords = coordenadaLocalidades[localidad];
-            x = coords ? coords.lon : '';
-            y = coords ? coords.lat : '';
-            modo = coords ? 'Fallback' : 'Error';
-          }
-        }
-        
-        // ✅ Crear objeto LIMPIO: copiar SOLO columnas válidas + X, Y
-        const resultado = {};
-        columnasOriginales.forEach(col => {
-          resultado[col] = fila[col] || '';
-        });
-        resultado['X'] = x;
-        resultado['Y'] = y;
-        resultado['modo'] = modo;
-        
-        datosProcessados.push(resultado);
-        
-        const porcentaje = Math.round((i + 1) / datosGlobales.length * 100);
-        document.getElementById('geoProgressFill').style.width = porcentaje + '%';
-        document.getElementById('geoStatus').textContent = `Procesando: ${i + 1}/${datosGlobales.length}`;
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      
-      document.getElementById('geocodingContainer').style.display = 'none';
-      mostrarPreview();
-    }
-
-    function formatearCoordenada(valor) {
-      // ✅ Convertir a string y limpiar saltos de línea
-      let formatted = String(valor).trim().replace(/[\r\n\t]/g, '');
-      
-      // Normalizar: SIEMPRE convertir COMA a PUNTO (formato interno)
-      if (formatted.includes(',')) {
-        formatted = formatted.replace(',', '.');
-      }
-      
-      // Devolver con PUNTO (se convierte a COMA/PUNTO solo al exportar)
-      return formatted;
-    }
-
-    function mostrarPreview() {
-      const tabla = document.getElementById('previewTable');
-      tabla.innerHTML = '';
-      
-      let conCoordenadas = 0;
-      let sinCoordenadas = 0;
-      
-      datosProcessados.forEach(fila => {
-        if (fila['X'] === '' || !fila['X'] || fila['X'] === '0') sinCoordenadas++;
-        else conCoordenadas++;
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${fila['NRO_SERVICIO'] || '-'}</td>
-          <td>${fila['LOCALIDAD_SERVICIO'] || '-'}</td>
-          <td>${fila['LATITUD'] || '(vacío)'}</td>
-          <td>${fila['LONGITUD'] || '(vacío)'}</td>
-          <td><strong>${fila['X']}</strong></td>
-          <td><strong>${fila['Y']}</strong></td>
-          <td>${fila['modo']}</td>
-        `;
-        tabla.appendChild(tr);
-      });
-      
-      document.getElementById('processedCount').textContent = datosProcessados.length;
-      document.getElementById('withCoords').textContent = conCoordenadas;
-      document.getElementById('withoutCoords').textContent = sinCoordenadas;
-      document.getElementById('progressFill').style.width = '100%';
-    }
-
-    function mostrarPreviewCSV() {
-      const formato = document.getElementById('formatoDecimal').value;
-      const csv = generarCSV(formato);
-      const lineas = csv.trim().split('\n');
-      
-      if (lineas.length < 2) {
-        alert('No hay datos para previsualizar');
+    function cargarArchivos() {
+      const input = document.getElementById('fileInput');
+      if (!input.files.length) {
+        mostrarError('❌ Selecciona al menos un archivo');
         return;
       }
-      
-      // Parsear encabezados
-      const encabezados = lineas[0].split(';');
-      const numColumnas = encabezados.length;
-      const numFilas = lineas.length - 1;
-      
-      // Mostrar info
-      document.getElementById('previewColCount').textContent = numColumnas;
-      document.getElementById('previewRowCount').textContent = numFilas;
-      document.getElementById('previewFormato').textContent = formato === 'coma' ? 'Coma (,)' : 'Punto (.)';
-      
-      // Encabezados tabla
-      const headerRow = document.getElementById('previewHeader');
-      headerRow.innerHTML = '';
+
+      datosOriginales = [];
+      encabezados = [];
+      let archivosProcessor = 0;
+      const totalArchivos = input.files.length;
+
+      function procesarSiguiente() {
+        if (archivosProcessor >= totalArchivos) {
+          if (datosOriginales.length === 0) {
+            mostrarError('❌ No se cargaron datos válidos');
+            return;
+          }
+          mostrarExito(`✅ Cargados ${datosOriginales.length} registros de ${totalArchivos} archivo(s)`);
+          mostrarDatos();
+          document.getElementById('procesarSection').classList.remove('hidden');
+          return;
+        }
+
+        const file = input.files[archivosProcessor];
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+          try {
+            let contenido = e.target.result;
+            contenido = contenido.replace(/\uFEFF/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+            let lineas = contenido.split('\n').filter(l => l.trim().length > 0);
+
+            if (lineas.length < 2) {
+              console.warn(`⚠️ ${file.name}: sin datos`);
+              archivosProcessor++;
+              procesarSiguiente();
+              return;
+            }
+
+            const separador = detectarSeparador(lineas[0]);
+            const colsArchivo = lineas[0].split(separador).map(h => h.trim());
+
+            if (archivosProcessor === 0) {
+              encabezados = colsArchivo;
+            }
+
+            for (let i = 1; i < lineas.length; i++) {
+              const valores = lineas[i].split(separador);
+              const fila = {};
+              colsArchivo.forEach((col, idx) => {
+                fila[col] = valores[idx] ? valores[idx].trim() : '';
+              });
+              datosOriginales.push(fila);
+            }
+
+            console.log(`✅ ${file.name}: ${lineas.length - 1} registros`);
+            archivosProcessor++;
+            procesarSiguiente();
+
+          } catch (error) {
+            console.error(`❌ ${file.name}:`, error);
+            archivosProcessor++;
+            procesarSiguiente();
+          }
+        };
+
+        reader.readAsText(file);
+      }
+
+      procesarSiguiente();
+    }
+
+    function mostrarDatos() {
+      document.getElementById('datosSection').classList.remove('hidden');
+      document.getElementById('infoRegistros').textContent = `Total: ${datosOriginales.length} registros`;
+
+      const encabezadoRow = document.getElementById('encabezados');
+      encabezadoRow.innerHTML = '';
       encabezados.forEach(col => {
         const th = document.createElement('th');
-        th.textContent = col.trim();
-        th.style.fontSize = 'var(--st-text-xs)';
-        th.style.whiteSpace = 'nowrap';
-        headerRow.appendChild(th);
+        th.textContent = col;
+        encabezadoRow.appendChild(th);
       });
-      
-      // Primeras 10 filas
-      const bodyElement = document.getElementById('previewBody');
-      bodyElement.innerHTML = '';
-      const filasAMostrar = Math.min(10, lineas.length - 1);
-      
-      for (let i = 1; i <= filasAMostrar; i++) {
-        const valores = lineas[i].split(';');
+
+      const tbody = document.getElementById('datosTabla');
+      tbody.innerHTML = '';
+      datosOriginales.slice(0, 10).forEach(fila => {
         const tr = document.createElement('tr');
-        
-        valores.forEach((val, idx) => {
+        encabezados.forEach(col => {
           const td = document.createElement('td');
-          // Limpiar entrecomillado si lo tiene
-          let displayVal = val.replace(/^"|"$/g, '');
-          
-          // Resaltar X e Y
-          if (idx === numColumnas - 2 || idx === numColumnas - 1) {
-            td.style.fontWeight = '700';
-            td.style.backgroundColor = 'var(--st-amarillo-tenue)';
-          }
-          
-          td.textContent = displayVal;
-          td.style.fontSize = 'var(--st-text-xs)';
-          td.style.whiteSpace = 'nowrap';
+          td.textContent = fila[col] || '-';
           tr.appendChild(td);
         });
-        
-        bodyElement.appendChild(tr);
+        tbody.appendChild(tr);
+      });
+
+      if (datosOriginales.length > 10) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = encabezados.length;
+        td.textContent = `... y ${datosOriginales.length - 10} registros más`;
+        td.style.textAlign = 'center';
+        td.style.fontStyle = 'italic';
+        td.style.color = '#999';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
       }
-      
-      // Mostrar modal
-      document.getElementById('modalPreview').style.display = 'flex';
-      document.getElementById('modalPreview').style.alignItems = 'flex-start';
-      document.getElementById('modalPreview').style.justifyContent = 'center';
     }
 
-    function actualizarVistaPrevia() {
-      // Si la modal está abierta, actualizar previsualización
-      if (document.getElementById('modalPreview').style.display !== 'none') {
-        mostrarPreviewCSV();
-      }
-    }
-      const formato = document.getElementById('formatoDecimal').value;
-      let csv = generarCSV(formato);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      const sufijo = formato === 'coma' ? 'COMA' : 'PUNTO';
-      link.download = `${formatoDetectado}_GEOCODIFICADO_${sufijo}_${new Date().getTime()}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    function cambiarModo(modo, element) {
+      modoSeleccionado = modo;
+      document.querySelectorAll('.mode-card').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      console.log(`✅ Modo: ${modo}`);
     }
 
-    function generarCSV(formato = 'coma') {
-      if (!datosProcessados.length) return '';
-      
-      // ✅ SOLO las columnas que vinieron en el archivo original + X + Y
-      // NO incluir 'modo' ni nada extra
-      const todasLasColumnas = [...columnasOriginales, 'X', 'Y'];
-      
-      let csv = todasLasColumnas.join(';') + '\n';
-      
-      datosProcessados.forEach((filaProcesada, idx) => {
-        const valores = todasLasColumnas.map(header => {
-          let valor = '';
-          
-          if (header === 'X') {
-            valor = filaProcesada['X'] || '';
-          } else if (header === 'Y') {
-            valor = filaProcesada['Y'] || '';
-          } else {
-            valor = filaProcesada[header] || '';
+    function procesarDatos() {
+      datosProcesados = datosOriginales.map(fila => {
+        const nuevaFila = { ...fila };
+
+        let lat = fila['LATITUD'] || '';
+        let lon = fila['LONGITUD'] || '';
+
+        if (!lat || !lon) {
+          const localidad = (fila['LOCALIDAD_SERVICIO'] || '').toUpperCase();
+          const bd = coordenadaLocalidades[localidad];
+          if (bd) {
+            lat = bd.lat;
+            lon = bd.lon;
           }
-          
-          // Limpiar saltos de línea
-          valor = String(valor)
-            .replace(/[\r\n\t]/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-          
-          // Convertir formato decimal SOLO para X e Y
-          if (header === 'X' || header === 'Y') {
+        }
+
+        nuevaFila['X'] = lon;
+        nuevaFila['Y'] = lat;
+        return nuevaFila;
+      });
+
+      mostrarExito('✅ Datos procesados. Listo para descargar.');
+      document.getElementById('descargarSection').classList.remove('hidden');
+      document.getElementById('previewInfo').textContent = `${datosProcesados.length} registros procesados con coordenadas X e Y calculadas.`;
+    }
+
+    function descargar() {
+      if (!datosProcesados.length) {
+        mostrarError('❌ Procesa los datos primero');
+        return;
+      }
+
+      const formato = document.getElementById('formatoDecimal').value;
+      const colsExportar = [...encabezados, 'X', 'Y'];
+
+      let csv = colsExportar.join(';') + '\n';
+
+      datosProcesados.forEach(fila => {
+        const valores = colsExportar.map(col => {
+          let val = fila[col] || '';
+          val = String(val).replace(/[\r\n\t]/g, ' ').trim();
+
+          if ((col === 'X' || col === 'Y') && val) {
             if (formato === 'coma') {
-              valor = valor.replace(/\./g, ',');
+              val = val.replace(/\./g, ',');
             } else {
-              valor = valor.replace(/,/g, '.');
+              val = val.replace(/,/g, '.');
             }
           }
-          
-          // Entrecomillar si tiene ; o "
-          if (valor.includes(';') || valor.includes('"')) {
-            valor = '"' + valor.replace(/"/g, '""') + '"';
-          }
-          
-          return valor;
+
+          return val;
         });
-        
         csv += valores.join(';') + '\n';
       });
-      
-      return csv;
+
+      const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `geocodificado_${new Date().getTime()}.csv`;
+      link.click();
     }
 
-    function reiniciar() {
-      datosGlobales = [];
-      datosProcessados = [];
-      modoSeleccionado = null;
-      formatoDetectado = null;
-      columnasOriginales = [];
-      fileInput.value = '';
-      document.getElementById('previewInitialSection').classList.add('hidden');
-      document.getElementById('configSection').classList.add('hidden');
-      document.getElementById('previewSection').classList.add('hidden');
+    function mostrarExito(msg) {
+      const div = document.getElementById('mensajeDiv');
+      div.innerHTML = `<div class="success">${msg}</div>`;
+      setTimeout(() => { div.innerHTML = ''; }, 5000);
     }
+
+    function mostrarError(msg) {
+      const div = document.getElementById('mensajeDiv');
+      div.innerHTML = `<div class="error">${msg}</div>`;
+    }
+
+    // Drag & drop
+    document.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      document.querySelector('.upload-area').style.background = 'rgba(230, 168, 23, 0.15)';
+    });
+    document.addEventListener('dragleave', () => {
+      document.querySelector('.upload-area').style.background = 'rgba(230, 168, 23, 0.05)';
+    });
+    document.addEventListener('drop', (e) => {
+      e.preventDefault();
+      document.querySelector('.upload-area').style.background = 'rgba(230, 168, 23, 0.05)';
+      document.getElementById('fileInput').files = e.dataTransfer.files;
+      cargarArchivos();
+    });
   </script>
-
 </body>
 </html>
