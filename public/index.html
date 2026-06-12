@@ -188,41 +188,60 @@ html
     function detectarSeparador(linea) { const c = {'\t': (linea.match(/\t/g) || []).length, ',': (linea.match(/,/g) || []).length, ';': (linea.match(/;/g) || []).length}; let sep = '\t', max = 0; for (const [s, cnt] of Object.entries(c)) { if (cnt > max) { max = cnt; sep = s; } } return sep; }
 
     function procesarMultiplesArchivos(files) {
-      datosGlobales = []; columnasOriginales = []; let arch = 0, total = files.length;
-      function procSig() {
-        if (arch >= total) { finalizarCarga(); return; }
-        const file = files[arch]; const reader = new FileReader();
-        reader.onload = e => {
-          try {
-            let cont = e.target.result.replace(/\uFEFF/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
-            let lineas = cont.split('\n').filter(l => l.trim().length > 0);
-            if (lineas.length < 2) { arch++; procSig(); return; }
-            const sep = detectarSeparador(lineas[0]);
-            
-            // Leemos cabeceras limpiando comillas residuales
-            const enc = lineas[0].split(sep).map(h => h.replace(/"/g, '').trim());
-            if (arch === 0) { columnasOriginales = enc; detectarFormato(columnasOriginales); }
-            
-            for (let i = 1; i < lineas.length; i++) {
-              const lt = lineas[i].trim(); if (!lt) continue;
-              const vals = lt.split(sep);
-              if (vals.length > 0) {
-                const fila = {};
-                enc.forEach((h, idx) => {
-                  let v = vals[idx] ? vals[idx].trim() : '';
-                  // Removemos las comillas externas que traiga el dato original para normalizar el objeto
-                  if (v.startsWith('"') && v.endsWith('"')) v = v.slice(1, -1).trim();
-                  fila[h] = v;
-                });
-                datosGlobales.push(fila);
-              }
+      datosGlobales = []; 
+      columnasOriginales = []; 
+      
+      const file = files[0];
+      const reader = new FileReader();
+
+      reader.onload = e => {
+        // 1. Obtener texto crudo y normalizar saltos
+        let cont = e.target.result.replace(/\uFEFF/g, '');
+        let lineasBrutas = cont.split(/\r\n|\r|\n/);
+        
+        if (lineasBrutas.length < 2) return;
+
+        // 2. Detectar separador (el que más se repita en la primera línea)
+        const sep = detectarSeparador(lineasBrutas[0]);
+        columnasOriginales = lineasBrutas[0].split(sep).map(h => h.trim());
+
+        // 3. RECOMPOSICIÓN: Unir filas partidas
+        let filasProcesadas = [];
+        let bufferFila = "";
+
+        for (let i = 1; i < lineasBrutas.length; i++) {
+          let linea = lineasBrutas[i].trim();
+          if (linea === "") continue;
+
+          // Si la línea empieza con un número (identificamos el inicio de un registro)
+          // Usamos una Regex que detecta si la fila empieza con el NRO_LIST_REAPER (ej: 27503)
+          if (/^\d{5,}/.test(linea)) {
+            if (bufferFila !== "") {
+              filasProcesadas.push(bufferFila.split(sep));
             }
-            arch++; procSig();
-          } catch (err) { console.error(err); arch++; procSig(); }
-        };
-        reader.readAsText(file, 'utf-8');
-      }
-      procSig();
+            bufferFila = linea;
+          } else {
+            // Es una continuación, la pegamos a la anterior con un espacio
+            bufferFila += " " + linea;
+          }
+        }
+        // Agregar la última fila pendiente
+        if (bufferFila !== "") filasProcesadas.push(bufferFila.split(sep));
+
+        // 4. Mapear a objetos
+        datosGlobales = filasProcesadas.map(cols => {
+          let obj = {};
+          columnasOriginales.forEach((header, idx) => {
+            obj[header] = cols[idx] ? cols[idx].trim() : "";
+          });
+          return obj;
+        });
+
+        detectarFormato(columnasOriginales);
+        mostrarPreviewInicial();
+      };
+      
+      reader.readAsText(file, 'windows-1252'); 
     }
 
     function finalizarCarga() { if (datosGlobales.length === 0) { alert('❌ No hay datos'); return; } mostrarPreviewInicial(); }
