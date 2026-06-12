@@ -1,11 +1,10 @@
-html
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Geocodificador Híbrido — SER&TEC</title>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght=400;600;700&family=Barlow:wght=300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
       --st-amarillo: #E6A817;
@@ -29,6 +28,7 @@ html
     .st-btn:hover { border-color: var(--st-gris-oscuro); }
     .st-btn--primary { background: var(--st-amarillo); color: #fff; border-color: var(--st-amarillo); }
     .st-btn--primary:hover { background: #C08A0E; border-color: #C08A0E; }
+    .st-btn--primary:disabled { background: var(--st-gris-claro); border-color: var(--st-gris-claro); cursor: not-allowed; }
     .st-upload { border: 2px dashed rgba(230,168,23,0.35); border-radius: 10px; padding: 40px; text-align: center; background: rgba(230,168,23,0.12); cursor: pointer; transition: all 0.18s ease; }
     .st-upload:hover { border-color: var(--st-amarillo); background: rgba(230,168,23,0.18); }
     .st-upload__icon { color: var(--st-amarillo); margin-bottom: 16px; }
@@ -116,8 +116,8 @@ html
             <button class="st-btn st-btn--ghost" onclick="reiniciar()">Cargar otro</button>
             <label style="font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;">Formato Decimal: 
               <select id="formatoDecimal" style="padding: 6px 12px; border: 1px solid var(--st-gris-claro); border-radius: 6px; font-size: 13px;">
-                <option value="coma">Coma (,)</option>
                 <option value="punto">Punto (.)</option>
+                <option value="coma">Coma (,)</option>
               </select>
             </label>
             <button class="st-btn st-btn--primary" onclick="descargarCSV()">⬇️ Descargar</button>
@@ -133,6 +133,9 @@ html
   </footer>
 
   <script>
+    // ===== CONFIGURACIÓN: poné acá tu URL real de Netlify =====
+    const GEOCODE_API_URL = 'https://TU-SITIO.netlify.app/.netlify/functions/geocode';
+
     let datosGlobales = [], datosProcessados = [], modoSeleccionado = null, formatoDetectado = null, columnasOriginales = [];
     
     const coordenadaLocalidades = {
@@ -253,40 +256,92 @@ html
       document.getElementById('processBtn').disabled = false;
     }
 
-    function procesarDatos() {
+    async function procesarDatos() {
       document.getElementById('previewInitialSection').classList.add('hidden');
       document.getElementById('configSection').classList.add('hidden');
       document.getElementById('previewSection').classList.remove('hidden');
-      
-      datosProcessados = datosGlobales.map(f => {
+
+      datosProcessados = [];
+
+      for (const f of datosGlobales) {
         let latRaw = (f['LATITUD'] || '').replace(',', '.').trim();
         let lonRaw = (f['LONGITUD'] || '').replace(',', '.').trim();
         const loc = (f['LOCALIDAD_SERVICIO'] || '').toUpperCase().trim();
-        
+
         let numLat = parseFloat(latRaw);
         let numLon = parseFloat(lonRaw);
-        
+
         let lat_final, lon_final, modo;
-        
+
         if (!isNaN(numLat) && !isNaN(numLon) && numLat !== 0 && numLon !== 0) {
-          lat_final = numLat.toFixed(6);
-          lon_final = numLon.toFixed(6);
+          lat_final = String(numLat);
+          lon_final = String(numLon);
           modo = 'Original';
+        } else if (modoSeleccionado === 'api') {
+          // Geocodificar vía Nominatim (proxy Netlify)
+          try {
+            const res = await fetch(GEOCODE_API_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                calle: f['CALLE_SERVICIO'],
+                numero: f['NRO_CALLE_SERVICIO'],
+                localidad: f['LOCALIDAD_SERVICIO'],
+                provincia: f['PROVINCIA_SERVICIO']
+              })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+              lat_final = String(parseFloat(data.lat));
+              lon_final = String(parseFloat(data.lon));
+              modo = 'API';
+            } else {
+              // fallback a coordenada de localidad
+              const c = coordenadaLocalidades[loc];
+              if (c) {
+                lat_final = String(c.lat);
+                lon_final = String(c.lon);
+                modo = 'Localidad (fallback)';
+              } else {
+                lat_final = "0";
+                lon_final = "0";
+                modo = 'No encontrado';
+              }
+            }
+          } catch (err) {
+            console.error('Error geocodificando:', err);
+            lat_final = "0";
+            lon_final = "0";
+            modo = 'Error API';
+          }
+
+          // Pausa para respetar el límite de 1 req/seg de Nominatim
+          await new Promise(r => setTimeout(r, 1100));
+
+          // Feedback de progreso
+          document.getElementById('formatDetected').textContent =
+            `📋 ${formatoDetectado} | Geocodificando... ${datosProcessados.length + 1}/${datosGlobales.length}`;
+          document.getElementById('previewInitialSection').classList.remove('hidden');
+
         } else {
+          // modo local (rápido)
           const c = coordenadaLocalidades[loc];
-          if (c) { 
-            lat_final = c.lat.toFixed(6); 
-            lon_final = c.lon.toFixed(6); 
-            modo = 'Localidad'; 
-          } else { 
-            lat_final = (0).toFixed(6); 
-            lon_final = (0).toFixed(6); 
-            modo = 'No encontrado'; 
+          if (c) {
+            lat_final = String(c.lat);
+            lon_final = String(c.lon);
+            modo = 'Localidad';
+          } else {
+            lat_final = "0";
+            lon_final = "0";
+            modo = 'No encontrado';
           }
         }
-        
-        return { ...f, 'LATITUD': lat_final, 'LONGITUD': lon_final, 'X': lon_final, 'Y': lat_final, modo };
-      });
+
+        datosProcessados.push({ ...f, 'LATITUD': lat_final, 'LONGITUD': lon_final, 'X': lon_final, 'Y': lat_final, modo });
+      }
+
+      document.getElementById('previewInitialSection').classList.add('hidden');
       mostrarPreview();
     }
 
@@ -308,7 +363,7 @@ html
     function descargarCSV() {
       const fmt = document.getElementById('formatoDecimal').value;
       let csv = generarCSV(fmt);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       const hoy = new Date();
@@ -324,8 +379,8 @@ html
       if (!datosProcessados.length) return '';
       const cols = [...columnasOriginales, 'X', 'Y'];
       
-      // SOLUCIÓN CRÍTICA: Envolvemos todas las cabeceras en comillas dobles explícitas para ArcGIS
-      let csv = cols.map(c => `"${c}"`).join(';') + '\r\n';
+      // Sin comillas en ningún campo: AGOL requiere CSV sin quoting para detectar X/Y
+      let csv = cols.join(';') + '\n';
       
       datosProcessados.forEach((f) => {
         const vals = [];
@@ -333,9 +388,9 @@ html
           const c = cols[i];
           let v = f[c] || '';
           
-          // Limpieza de saltos de línea y caracteres de tabulación
+          // Limpieza de saltos de línea y tabulaciones
           v = v.replace(/\r\n/g, ' ').replace(/\r/g, ' ').replace(/\n/g, ' ').replace(/\t/g, ' ');
-          // BLINDAJE EXTRA: Eliminamos cualquier ";" interno de los textos de entrada que rompa las columnas
+          // Eliminamos ";" interno que rompa columnas
           v = v.replace(/;/g, ' ');
           v = v.replace(/\s+/g, ' ').trim();
           
@@ -348,10 +403,9 @@ html
               }
             }
           }
-          // Todas las filas se inyectan estrictamente encapsuladas en comillas dobles
-          vals.push(`"${v}"`);
+          vals.push(v);
         }
-        csv += vals.join(';') + '\r\n';
+        csv += vals.join(';') + '\n';
       });
       return csv;
     }
@@ -366,5 +420,3 @@ html
   </script>
 </body>
 </html>
-
-```
