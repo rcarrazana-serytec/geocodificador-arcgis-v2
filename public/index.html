@@ -193,30 +193,32 @@ html
       const file = files[0];
       const reader = new FileReader();
 
+      // Leemos como ArrayBuffer para tener control total de los bytes
       reader.onload = e => {
-        // --- AQUÍ ESTÁ LA MAGIA ---
-        // Eliminamos el BOM (Byte Order Mark) y caracteres de control invisibles
-        let text = e.target.result.replace(/^\uFEFF/g, '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
-        // ---------------------------
-
-        let lines = text.split(/\r\n|\r|\n/);
-        if (lines.length < 2) return;
-
-        // Detectar el separador (el que más aparezca en la primera línea)
-        const sep = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+        const bytes = new Uint8Array(e.target.result);
+        // Convertimos a string manualmente, forzando limpieza
+        let text = new TextDecoder("windows-1252").decode(bytes);
         
-        columnasOriginales = lines[0].split(sep).map(h => h.trim().replace(/"/g, ''));
+        // Limpiamos BOM (el carácter invisible que Excel elimina)
+        text = text.replace(/^\uFEFF/g, '');
 
-        // Procesar uniendo filas rotas (la lógica que definimos antes)
+        // Detectamos el separador viendo cuál es el más frecuente en la primera fila
+        const primeraFila = text.split(/\r?\n/)[0];
+        const sep = primeraFila.includes(';') ? ';' : '\t';
+        
+        // Ahora sí, separamos por filas
+        let lines = text.split(/\r?\n/);
+        
+        // Lógica de unión de filas partidas (mantenemos esto)
         let filasProcesadas = [];
         let buffer = "";
-
+        
         for (let i = 1; i < lines.length; i++) {
           let l = lines[i].trim();
           if (!l) continue;
           
-          // Si la línea empieza con un número, es inicio de registro
-          if (/^\d{5,}/.test(l)) {
+          // Regex para detectar si la línea empieza con número (tu ID)
+          if (/^\d{5}/.test(l)) {
             if (buffer) filasProcesadas.push(buffer.split(sep));
             buffer = l;
           } else {
@@ -225,21 +227,21 @@ html
         }
         if (buffer) filasProcesadas.push(buffer.split(sep));
 
-        // Mapear a objetos
+        // Mapeo
+        columnasOriginales = lines[0].split(sep).map(h => h.trim());
         datosGlobales = filasProcesadas.map(cols => {
           let obj = {};
           columnasOriginales.forEach((header, idx) => {
-            obj[header] = cols[idx] ? cols[idx].trim().replace(/"/g, '') : "";
+            obj[header] = cols[idx] ? cols[idx].trim() : "";
           });
           return obj;
         });
 
-        console.log("Registros detectados:", datosGlobales.length);
+        console.log("¡Archivo procesado por bytes! Registros detectados:", datosGlobales.length);
         mostrarPreviewInicial();
       };
       
-      // Intentamos leer con 'utf-8' primero, si falla, probamos 'windows-1252'
-      reader.readAsText(file, 'UTF-8');
+      reader.readAsArrayBuffer(file);
     }
 
     function finalizarCarga() { if (datosGlobales.length === 0) { alert('❌ No hay datos'); return; } mostrarPreviewInicial(); }
