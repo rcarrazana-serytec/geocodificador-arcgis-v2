@@ -187,61 +187,45 @@ html
 
     function detectarSeparador(linea) { const c = {'\t': (linea.match(/\t/g) || []).length, ',': (linea.match(/,/g) || []).length, ';': (linea.match(/;/g) || []).length}; let sep = '\t', max = 0; for (const [s, cnt] of Object.entries(c)) { if (cnt > max) { max = cnt; sep = s; } } return sep; }
 
-    function procesarMultiplesArchivos(files) {
-      datosGlobales = []; 
-      columnasOriginales = []; 
-      
+   function procesarMultiplesArchivos(files) {
+      datosGlobales = [];
+      columnasOriginales = [];
+
       const file = files[0];
       const reader = new FileReader();
 
       reader.onload = e => {
-        // 1. Obtener texto crudo y normalizar saltos
-        let cont = e.target.result.replace(/\uFEFF/g, '');
-        let lineasBrutas = cont.split(/\r\n|\r|\n/);
+        let textoCompleto = e.target.result;
         
-        if (lineasBrutas.length < 2) return;
+        // 1. Detectamos el separador de la primera línea
+        const primeraLinea = textoCompleto.split(/\r\n|\r|\n/)[0];
+        const sep = primeraLinea.includes(';') ? ';' : '\t';
+        
+        // 2. Extraemos los headers
+        columnasOriginales = primeraLinea.split(sep).map(h => h.trim());
+        
+        // 3. ESTRATEGIA DE LECTURA TOTAL:
+        // En lugar de dividir por líneas, dividimos por el NRO_LIST_REAPER (el inicio de cada fila)
+        // Buscamos filas que empiezan con números (ej: 27506)
+        let registros = textoCompleto.split(/\r\n|\r|\n(?=\d{5,})/);
+        
+        // Eliminamos la cabecera del array resultante
+        registros.shift(); 
 
-        // 2. Detectar separador (el que más se repita en la primera línea)
-        const sep = detectarSeparador(lineasBrutas[0]);
-        columnasOriginales = lineasBrutas[0].split(sep).map(h => h.trim());
-
-        // 3. RECOMPOSICIÓN: Unir filas partidas
-        let filasProcesadas = [];
-        let bufferFila = "";
-
-        for (let i = 1; i < lineasBrutas.length; i++) {
-          let linea = lineasBrutas[i].trim();
-          if (linea === "") continue;
-
-          // Si la línea empieza con un número (identificamos el inicio de un registro)
-          // Usamos una Regex que detecta si la fila empieza con el NRO_LIST_REAPER (ej: 27503)
-          if (/^\d{5,}/.test(linea)) {
-            if (bufferFila !== "") {
-              filasProcesadas.push(bufferFila.split(sep));
-            }
-            bufferFila = linea;
-          } else {
-            // Es una continuación, la pegamos a la anterior con un espacio
-            bufferFila += " " + linea;
-          }
-        }
-        // Agregar la última fila pendiente
-        if (bufferFila !== "") filasProcesadas.push(bufferFila.split(sep));
-
-        // 4. Mapear a objetos
-        datosGlobales = filasProcesadas.map(cols => {
+        datosGlobales = registros.map(fila => {
+          let celdas = fila.split(sep);
           let obj = {};
           columnasOriginales.forEach((header, idx) => {
-            obj[header] = cols[idx] ? cols[idx].trim() : "";
+            obj[header] = celdas[idx] ? celdas[idx].trim() : "";
           });
           return obj;
-        });
+        }).filter(obj => obj[columnasOriginales[0]] !== "");
 
-        detectarFormato(columnasOriginales);
+        console.log("Registros detectados:", datosGlobales.length);
         mostrarPreviewInicial();
       };
       
-      reader.readAsText(file, 'windows-1252'); 
+      reader.readAsText(file, 'windows-1252');
     }
 
     function finalizarCarga() { if (datosGlobales.length === 0) { alert('❌ No hay datos'); return; } mostrarPreviewInicial(); }
