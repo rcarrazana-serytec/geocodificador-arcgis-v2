@@ -190,42 +190,56 @@ html
    function procesarMultiplesArchivos(files) {
       datosGlobales = [];
       columnasOriginales = [];
-
       const file = files[0];
       const reader = new FileReader();
 
       reader.onload = e => {
-        let textoCompleto = e.target.result;
-        
-        // 1. Detectamos el separador de la primera línea
-        const primeraLinea = textoCompleto.split(/\r\n|\r|\n/)[0];
-        const sep = primeraLinea.includes(';') ? ';' : '\t';
-        
-        // 2. Extraemos los headers
-        columnasOriginales = primeraLinea.split(sep).map(h => h.trim());
-        
-        // 3. ESTRATEGIA DE LECTURA TOTAL:
-        // En lugar de dividir por líneas, dividimos por el NRO_LIST_REAPER (el inicio de cada fila)
-        // Buscamos filas que empiezan con números (ej: 27506)
-        let registros = textoCompleto.split(/\r\n|\r|\n(?=\d{5,})/);
-        
-        // Eliminamos la cabecera del array resultante
-        registros.shift(); 
+        // --- AQUÍ ESTÁ LA MAGIA ---
+        // Eliminamos el BOM (Byte Order Mark) y caracteres de control invisibles
+        let text = e.target.result.replace(/^\uFEFF/g, '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
+        // ---------------------------
 
-        datosGlobales = registros.map(fila => {
-          let celdas = fila.split(sep);
+        let lines = text.split(/\r\n|\r|\n/);
+        if (lines.length < 2) return;
+
+        // Detectar el separador (el que más aparezca en la primera línea)
+        const sep = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+        
+        columnasOriginales = lines[0].split(sep).map(h => h.trim().replace(/"/g, ''));
+
+        // Procesar uniendo filas rotas (la lógica que definimos antes)
+        let filasProcesadas = [];
+        let buffer = "";
+
+        for (let i = 1; i < lines.length; i++) {
+          let l = lines[i].trim();
+          if (!l) continue;
+          
+          // Si la línea empieza con un número, es inicio de registro
+          if (/^\d{5,}/.test(l)) {
+            if (buffer) filasProcesadas.push(buffer.split(sep));
+            buffer = l;
+          } else {
+            buffer += " " + l;
+          }
+        }
+        if (buffer) filasProcesadas.push(buffer.split(sep));
+
+        // Mapear a objetos
+        datosGlobales = filasProcesadas.map(cols => {
           let obj = {};
           columnasOriginales.forEach((header, idx) => {
-            obj[header] = celdas[idx] ? celdas[idx].trim() : "";
+            obj[header] = cols[idx] ? cols[idx].trim().replace(/"/g, '') : "";
           });
           return obj;
-        }).filter(obj => obj[columnasOriginales[0]] !== "");
+        });
 
         console.log("Registros detectados:", datosGlobales.length);
         mostrarPreviewInicial();
       };
       
-      reader.readAsText(file, 'windows-1252');
+      // Intentamos leer con 'utf-8' primero, si falla, probamos 'windows-1252'
+      reader.readAsText(file, 'UTF-8');
     }
 
     function finalizarCarga() { if (datosGlobales.length === 0) { alert('❌ No hay datos'); return; } mostrarPreviewInicial(); }
