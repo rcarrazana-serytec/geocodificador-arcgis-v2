@@ -4,59 +4,148 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Geocodificador Híbrido — SER&TEC</title>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="palita-128.png">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --st-amarillo: #E6A817;
+      --st-amarillo-hover: #C08A0E;
+      --st-amarillo-tinte: #FBF1D9;
+      --st-amarillo-texto: #7A5600;
       --st-gris-oscuro: #4A4A4A;
+      --st-texto-sec: #5E5E5E;
       --st-gris-claro: #C4C4C4;
+      --st-gris-borde: #DDDDDD;
       --st-gris-fondo: #F4F4F4;
-      --st-exito: #2E8B57;
+      --st-exito: #23714A;
+      --st-error: #A93226;
+      --st-error-texto: #7B241C;
+      --st-error-fondo: #FDECEA;
+      --st-error-borde: #E6B0AA;
+      --st-sombra: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--st-gris-fondo); color: var(--st-gris-oscuro); font-family: 'Barlow', Arial, sans-serif; font-size: 15px; line-height: 1.6; }
-    h1, h2 { font-family: 'Barlow Condensed', Arial, sans-serif; font-weight: 700; color: var(--st-gris-oscuro); }
-    h1 { font-size: 42px; }
-    h2 { font-size: 32px; }
-    .st-navbar { background: #fff; border-bottom: 1px solid var(--st-gris-claro); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-    .st-navbar__logo { display: flex; align-items: center; gap: 16px; font-weight: 700; font-size: 20px; }
-    .st-page { padding: 64px 0; min-height: calc(100vh - 80px); }
+    body { background: var(--st-gris-fondo); color: var(--st-gris-oscuro); font-family: 'Barlow', Arial, sans-serif; font-size: 15px; line-height: 1.6; accent-color: var(--st-amarillo); }
+    ::selection { background: rgba(230,168,23,0.35); color: #2B2B2B; }
+    :focus-visible { outline: 2px solid var(--st-amarillo-texto); outline-offset: 2px; }
+    h1, h2, h3 { font-family: 'Barlow Condensed', Arial, sans-serif; font-weight: 700; color: var(--st-gris-oscuro); line-height: 1.15; text-wrap: balance; }
+    h1 { font-size: clamp(32px, 6vw, 42px); }
+    h2 { font-size: clamp(26px, 4.5vw, 32px); margin-bottom: 16px; }
+    h3 { font-size: 24px; }
+    .st-ico { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+    .st-navbar { background: #fff; border-bottom: 1px solid var(--st-gris-borde); padding: 12px 24px; display: flex; align-items: center; box-shadow: var(--st-sombra); }
+    .st-navbar__logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; }
+    .st-navbar__logo img { width: 36px; height: 36px; border-radius: 50%; }
+    .st-page { padding: 56px 0; min-height: calc(100vh - 80px); }
     .st-container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-    .st-section { margin-bottom: 64px; }
-    .st-card { background: #fff; border: 1px solid var(--st-gris-claro); border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 24px; }
-    .st-btn { padding: 10px 20px; border: 1px solid var(--st-gris-claro); border-radius: 6px; background: #fff; color: var(--st-gris-oscuro); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.18s ease; }
+    .st-section { margin-bottom: 56px; }
+    .st-intro { color: var(--st-texto-sec); margin-top: 8px; max-width: 65ch; }
+    .st-card { background: #fff; border: 1px solid var(--st-gris-borde); border-radius: 10px; box-shadow: var(--st-sombra); padding: 24px; }
+
+    .st-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 18px; border: 1px solid var(--st-gris-claro); border-radius: 6px; background: #fff; color: var(--st-gris-oscuro); font: 600 14px 'Barlow', Arial, sans-serif; cursor: pointer; transition: background-color 0.18s ease, border-color 0.18s ease; }
     .st-btn:hover { border-color: var(--st-gris-oscuro); }
-    .st-btn--primary { background: var(--st-amarillo); color: #fff; border-color: var(--st-amarillo); }
-    .st-btn--primary:hover { background: #C08A0E; border-color: #C08A0E; }
-    .st-btn--primary:disabled { background: var(--st-gris-claro); border-color: var(--st-gris-claro); cursor: not-allowed; }
-    .st-upload { border: 2px dashed rgba(230,168,23,0.35); border-radius: 10px; padding: 40px; text-align: center; background: rgba(230,168,23,0.12); cursor: pointer; transition: all 0.18s ease; }
-    .st-upload:hover { border-color: var(--st-amarillo); background: rgba(230,168,23,0.18); }
-    .st-upload__icon { color: var(--st-amarillo); margin-bottom: 16px; }
-    .st-upload__title { font-size: 20px; font-weight: 700; color: var(--st-gris-oscuro); margin-bottom: 8px; }
-    .st-upload__sub { font-size: 13px; color: #7A7A7A; }
-    .st-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .st-table thead { background: var(--st-gris-fondo); border-bottom: 2px solid var(--st-gris-claro); }
-    .st-table th { padding: 12px; text-align: left; font-weight: 700; }
-    .st-table td { padding: 12px; border-bottom: 1px solid var(--st-gris-claro); }
-    .st-table-wrapper { overflow-x: auto; max-height: 600px; overflow-y: auto; }
-    .st-table tr.st-row--alerta td { background: #FDECEA; }
-    .st-table tr.st-row--alerta td:last-child { color: #A93226; font-weight: 700; }
-    .st-alerta { border: 1px solid #E6B0AA; background: #FDECEA; color: #7B241C; border-radius: 6px; padding: 16px; margin-bottom: 24px; font-size: 13px; }
-    .st-alerta strong { font-size: 15px; }
-    .st-alerta ul { margin: 8px 0 12px 20px; }
-    .hidden { display: none; }
-    .st-footer { background: var(--st-gris-oscuro); color: #fff; padding: 24px; text-align: center; margin-top: 64px; font-size: 13px; }
-    .st-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #7A7A7A; }
-    .st-label--gold { color: var(--st-amarillo); }
+    .st-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .st-btn--ghost { background: transparent; }
+    .st-btn--primary { background: var(--st-amarillo); color: #2B2B2B; border-color: var(--st-amarillo); }
+    .st-btn--primary:hover { background: var(--st-amarillo-hover); border-color: var(--st-amarillo-hover); }
+    .st-btn--primary:disabled { background: var(--st-gris-claro); border-color: var(--st-gris-claro); opacity: 1; }
+    .st-acciones { display: flex; gap: 12px; justify-content: flex-end; align-items: center; flex-wrap: wrap; }
+
+    .st-upload { border: 2px dashed #E3C77E; border-radius: 10px; padding: 40px 24px; text-align: center; background: var(--st-amarillo-tinte); cursor: pointer; transition: background-color 0.18s ease, border-color 0.18s ease; }
+    .st-upload:hover, .st-upload.is-drag { border-color: var(--st-amarillo); background: #F8E9C4; }
+    .st-upload__icon { color: var(--st-amarillo-texto); margin-bottom: 12px; }
+    .st-upload__icon .st-ico { width: 44px; height: 44px; stroke-width: 1.5; }
+    .st-upload__title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .st-upload__sub { font-size: 13px; color: var(--st-texto-sec); }
+    .st-upload__archivo { display: none; margin: 16px auto 0; width: fit-content; max-width: 100%; align-items: center; gap: 8px; padding: 8px 14px; background: #fff; border: 1px solid var(--st-gris-borde); border-radius: 6px; font-size: 13px; font-weight: 600; }
+    .st-upload__archivo .st-ico { color: var(--st-exito); }
+    .st-upload__archivo span { overflow-wrap: anywhere; text-align: left; }
+    .st-upload.is-cargado .st-upload__archivo { display: flex; }
+    .st-upload.is-error .st-upload__archivo { display: flex; border-color: var(--st-error-borde); color: var(--st-error-texto); }
+    .st-upload.is-error .st-upload__archivo .st-ico { color: var(--st-error); }
+
+    .st-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .st-resumen { font-size: 14px; color: var(--st-texto-sec); }
+    .st-resumen strong { color: var(--st-gris-oscuro); }
+
+    .st-modos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .st-modo { position: relative; display: block; width: 100%; text-align: left; font: inherit; color: inherit; background: #fff; border: 1px solid var(--st-gris-borde); border-radius: 10px; box-shadow: var(--st-sombra); padding: 20px 24px; cursor: pointer; transition: background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; }
+    .st-modo:hover { border-color: var(--st-gris-claro); }
+    .st-modo[aria-pressed="true"] { background: var(--st-amarillo-tinte); border-color: var(--st-amarillo); box-shadow: 0 0 0 1px var(--st-amarillo); }
+    .st-modo__icono { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; background: var(--st-gris-fondo); color: var(--st-gris-oscuro); margin-bottom: 12px; }
+    .st-modo[aria-pressed="true"] .st-modo__icono { background: var(--st-amarillo); color: #2B2B2B; }
+    .st-modo__desc { font-size: 13px; color: var(--st-texto-sec); margin-top: 4px; }
+    .st-modo__check { position: absolute; top: 16px; right: 16px; display: none; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--st-amarillo-texto); color: #fff; }
+    .st-modo__check .st-ico { width: 14px; height: 14px; stroke-width: 2.5; }
+    .st-modo[aria-pressed="true"] .st-modo__check { display: grid; }
+
+    .st-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .st-stat { background: var(--st-gris-fondo); padding: 12px 14px; border-radius: 6px; }
+    .st-stat__num { font-size: 28px; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; }
+    .st-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--st-texto-sec); }
+
+    .st-progreso { margin-bottom: 24px; }
+    .st-progreso__texto { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+    .st-progreso__texto span:last-child { color: var(--st-texto-sec); }
+    .st-progreso__barra { height: 8px; background: var(--st-gris-fondo); border-radius: 4px; overflow: hidden; }
+    .st-progreso__relleno { height: 100%; width: 0; background: var(--st-amarillo); border-radius: 4px; transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    .st-alerta { border: 1px solid var(--st-error-borde); background: var(--st-error-fondo); color: var(--st-error-texto); border-radius: 8px; padding: 16px 20px; margin-bottom: 24px; font-size: 14px; }
+    .st-alerta__titulo { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .st-alerta__titulo .st-ico { color: var(--st-error); }
+    .st-alerta p { max-width: 75ch; }
+    .st-alerta ul { margin: 8px 0 14px 20px; }
+    .st-alerta .st-btn { border-color: var(--st-error-borde); color: var(--st-error-texto); }
+    .st-alerta .st-btn:hover { border-color: var(--st-error-texto); }
+
+    .st-filtro { display: inline-flex; border: 1px solid var(--st-gris-claro); border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+    .st-filtro button { font: 600 13px 'Barlow', Arial, sans-serif; color: var(--st-texto-sec); background: #fff; border: 0; padding: 8px 14px; min-height: 36px; cursor: pointer; font-variant-numeric: tabular-nums; }
+    .st-filtro button + button { border-left: 1px solid var(--st-gris-claro); }
+    .st-filtro button[aria-pressed="true"] { background: var(--st-gris-oscuro); color: #fff; }
+
+    .st-table-wrapper { overflow: auto; max-height: 600px; border: 1px solid var(--st-gris-borde); border-radius: 6px; scrollbar-color: var(--st-gris-claro) transparent; }
+    .st-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .st-table th { position: sticky; top: 0; background: var(--st-gris-fondo); padding: 10px 12px; text-align: left; font-weight: 700; white-space: nowrap; border-bottom: 1px solid var(--st-gris-claro); }
+    .st-table td { padding: 10px 12px; border-bottom: 1px solid var(--st-gris-borde); white-space: nowrap; }
+    #previewSection.is-procesando .st-stats, #previewSection.is-procesando .st-table-wrapper, #previewSection.is-procesando .st-acciones { display: none; }
+    .st-table tbody tr:last-child td { border-bottom: 0; }
+    .st-table tr.st-row--alerta td { background: var(--st-error-fondo); }
+    .st-table tr.st-row--alerta td:last-child { color: var(--st-error); font-weight: 700; }
+    .st-select { font: 500 14px 'Barlow', Arial, sans-serif; color: var(--st-gris-oscuro); min-height: 40px; padding: 6px 10px; border: 1px solid var(--st-gris-claro); border-radius: 6px; background: #fff; }
+    .st-campo { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+    .hidden { display: none !important; }
+    .st-footer { background: var(--st-gris-oscuro); color: #fff; padding: 24px; text-align: center; font-size: 13px; }
+    .st-footer div { opacity: 0.85; margin-top: 4px; }
+
+    @media (max-width: 600px) {
+      .st-navbar { padding: 10px 16px; }
+      .st-container { padding: 0 16px; }
+      .st-page { padding: 40px 0; }
+      .st-section { margin-bottom: 44px; }
+      .st-card { padding: 16px; }
+      .st-upload { padding: 28px 16px; }
+      .st-acciones { justify-content: stretch; }
+      .st-acciones .st-btn { flex: 1 1 auto; justify-content: center; }
+    }
   </style>
 </head>
 <body>
+  <svg width="0" height="0" style="position: absolute;" aria-hidden="true">
+    <symbol id="i-upload" viewBox="0 0 24 24"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  </svg>
+
   <nav class="st-navbar">
     <div class="st-navbar__logo">
-      <svg width="32" height="32" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="20" cy="20" r="18" fill="none" stroke="#E6A817" stroke-width="2"/>
-        <path d="M20 8 L28 28 L12 28 Z" fill="#E6A817"/>
-      </svg>
+      <img src="palita-128.png" alt="" width="36" height="36">
       <span>Geocodificador Híbrido</span>
     </div>
   </nav>
@@ -64,45 +153,51 @@
   <main class="st-page">
     <div class="st-container">
       <section class="st-section">
-        <p class="st-label st-label--gold">Herramientas GIS · ArcGIS</p>
         <h1>Geocodificador Híbrido Multi-Formato</h1>
-        <p style="color: #7A7A7A; margin-top: 8px;">Carga archivos REAP u OML y obtén coordenadas X/Y automáticamente.</p>
+        <p class="st-intro">Cargá archivos REAP u OML y obtené coordenadas X/Y listas para ArcGIS.</p>
       </section>
 
       <section class="st-section">
         <h2>1. Cargar archivo</h2>
-        <div class="st-upload" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-          <div class="st-upload__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path></svg></div>
+        <div class="st-upload" id="uploadArea" role="button" tabindex="0" aria-label="Seleccionar archivo REAP u OML"
+             onclick="document.getElementById('fileInput').click()"
+             onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }">
+          <div class="st-upload__icon"><svg class="st-ico"><use href="#i-upload"/></svg></div>
           <div class="st-upload__title">Arrastrá tu archivo aquí</div>
           <div class="st-upload__sub">o hacé click para seleccionar · REAP (.txt) u OML (.csv)</div>
+          <div class="st-upload__archivo" id="archivoCargado" aria-live="polite"><svg class="st-ico" id="archivoIcono"><use href="#i-check"/></svg><span id="archivoTexto"></span></div>
           <input type="file" id="fileInput" accept=".txt,.csv" multiple style="display: none;" />
         </div>
       </section>
 
       <section class="st-section hidden" id="previewInitialSection">
         <h2>2. Vista previa</h2>
-        <div id="formatDetected" style="padding: 16px; border-radius: 6px; border-left: 4px solid #2E6DA4; font-size: 13px; background: rgba(46,109,164,0.08); color: #2E6DA4; margin-bottom: 16px;"></div>
         <div class="st-card">
-          <div style="margin-bottom: 16px;"><p class="st-label">Total registros</p><div style="font-size: 28px; font-weight: 700; color: var(--st-amarillo);" id="totalRowCount">0</div></div>
+          <div class="st-card__head">
+            <p class="st-resumen" id="formatDetected"></p>
+            <p class="st-resumen" id="totalRowCount"></p>
+          </div>
           <div class="st-table-wrapper"><table class="st-table"><thead><tr><th>NRO_SERVICIO</th><th>LOCALIDAD</th><th>LAT</th><th>LON</th></tr></thead><tbody id="previewInitialTable"></tbody></table></div>
         </div>
       </section>
 
       <section class="st-section hidden" id="configSection">
         <h2>3. Seleccionar modo</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 24px;">
-          <div class="st-card" style="cursor: pointer;" onclick="selectMode('local')" id="modeLocal">
-            <div style="font-size: 32px; margin-bottom: 12px;">⚡</div>
-            <h3 style="font-size: 24px; margin-bottom: 8px;">Rápido</h3>
-            <p style="font-size: 13px; color: #7A7A7A; margin: 0;">BD Local · Instantáneo</p>
-          </div>
-          <div class="st-card" style="cursor: pointer;" onclick="selectMode('api')" id="modeAPI">
-            <div style="font-size: 32px; margin-bottom: 12px;">🎯</div>
-            <h3 style="font-size: 24px; margin-bottom: 8px;">Preciso</h3>
-            <p style="font-size: 13px; color: #7A7A7A; margin: 0;">API Nominatim · Exacto</p>
-          </div>
+        <div class="st-modos">
+          <button type="button" class="st-modo" onclick="selectMode('local')" id="modeLocal" aria-pressed="false">
+            <span class="st-modo__check"><svg class="st-ico"><use href="#i-check"/></svg></span>
+            <span class="st-modo__icono"><svg class="st-ico"><use href="#i-zap"/></svg></span>
+            <h3>Rápido</h3>
+            <p class="st-modo__desc">BD Local · Instantáneo</p>
+          </button>
+          <button type="button" class="st-modo" onclick="selectMode('api')" id="modeAPI" aria-pressed="false">
+            <span class="st-modo__check"><svg class="st-ico"><use href="#i-check"/></svg></span>
+            <span class="st-modo__icono"><svg class="st-ico"><use href="#i-target"/></svg></span>
+            <h3>Preciso</h3>
+            <p class="st-modo__desc">API Nominatim · Exacto · ~1 seg por registro</p>
+          </button>
         </div>
-        <div class="st-card">
+        <div class="st-acciones">
           <button class="st-btn st-btn--ghost" onclick="reiniciar()">Cancelar</button>
           <button class="st-btn st-btn--primary" id="processBtn" onclick="procesarDatos()" disabled>Procesar</button>
         </div>
@@ -111,28 +206,36 @@
       <section class="st-section hidden" id="previewSection">
         <h2>4. Resultados</h2>
         <div class="st-card">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px;">
-            <div style="background: var(--st-gris-fondo); padding: 12px; border-radius: 6px;"><p class="st-label">Procesados</p><div style="font-size: 28px; font-weight: 700;" id="processedCount">0</div></div>
-            <div style="background: var(--st-gris-fondo); padding: 12px; border-radius: 6px;"><p class="st-label">Con coords</p><div style="font-size: 28px; font-weight: 700; color: var(--st-exito);" id="withCoords">0</div></div>
-            <div style="background: var(--st-gris-fondo); padding: 12px; border-radius: 6px;"><p class="st-label">Por provincia</p><div style="font-size: 28px; font-weight: 700; color: #A93226;" id="porProvincia">0</div></div>
-            <div style="background: var(--st-gris-fondo); padding: 12px; border-radius: 6px;"><p class="st-label">Sin coords</p><div style="font-size: 28px; font-weight: 700; color: #C0392B;" id="withoutCoords">0</div></div>
+          <div class="st-progreso hidden" id="progreso">
+            <div class="st-progreso__texto"><span id="progresoTexto">Geocodificando…</span><span id="progresoResto"></span></div>
+            <div class="st-progreso__barra" role="progressbar" aria-label="Progreso de geocodificación" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progresoBarra"><div class="st-progreso__relleno" id="progresoRelleno"></div></div>
           </div>
-          <div class="st-alerta hidden" id="alertaLocalidades">
-            <strong>⚠️ Localidades no encontradas</strong>
+          <div class="st-stats">
+            <div class="st-stat"><p class="st-label">Procesados</p><div class="st-stat__num" id="processedCount">0</div></div>
+            <div class="st-stat"><p class="st-label">Con coords</p><div class="st-stat__num" style="color: var(--st-exito);" id="withCoords">0</div></div>
+            <div class="st-stat"><p class="st-label">Por provincia</p><div class="st-stat__num" style="color: var(--st-error);" id="porProvincia">0</div></div>
+            <div class="st-stat"><p class="st-label">Sin coords</p><div class="st-stat__num" style="color: var(--st-error);" id="withoutCoords">0</div></div>
+          </div>
+          <div class="st-alerta hidden" id="alertaLocalidades" role="status">
+            <p class="st-alerta__titulo"><svg class="st-ico"><use href="#i-alert"/></svg>Localidades no encontradas</p>
             <p>Estas localidades no están en la base y se ubicaron en la capital de su provincia (filas en rojo). Avisá al administrador para que las agregue:</p>
             <ul id="listaLocalidades"></ul>
-            <button class="st-btn" onclick="copiarLocalidades()" id="btnCopiar">📋 Copiar lista</button>
+            <button class="st-btn" onclick="copiarLocalidades()" id="btnCopiar"><svg class="st-ico"><use href="#i-copy"/></svg><span>Copiar lista</span></button>
+          </div>
+          <div class="st-filtro hidden" id="filtro" role="group" aria-label="Filtrar resultados">
+            <button type="button" aria-pressed="true" onclick="filtrarResultados(false)" id="filtroTodos">Todos</button>
+            <button type="button" aria-pressed="false" onclick="filtrarResultados(true)" id="filtroRevisar">A revisar</button>
           </div>
           <div class="st-table-wrapper"><table class="st-table"><thead><tr><th>NRO_SERVICIO</th><th>LOCALIDAD</th><th>LAT</th><th>LON</th><th>X (Longitud)</th><th>Y (Latitud)</th><th>Modo</th></tr></thead><tbody id="previewTable"></tbody></table></div>
-          <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
-            <button class="st-btn st-btn--ghost" onclick="reiniciar()">Cargar otro</button>
-            <label style="font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;">Formato Decimal: 
-              <select id="formatoDecimal" style="padding: 6px 12px; border: 1px solid var(--st-gris-claro); border-radius: 6px; font-size: 13px;">
+          <div class="st-acciones" style="margin-top: 24px;">
+            <button class="st-btn st-btn--ghost" onclick="reiniciar()" id="btnCargarOtro">Cargar otro</button>
+            <label class="st-campo">Formato decimal:
+              <select id="formatoDecimal" class="st-select">
                 <option value="punto">Punto (.)</option>
                 <option value="coma">Coma (,)</option>
               </select>
             </label>
-            <button class="st-btn st-btn--primary" onclick="descargarCSV()">⬇️ Descargar</button>
+            <button class="st-btn st-btn--primary" onclick="descargarCSV()" id="btnDescargar"><svg class="st-ico"><use href="#i-download"/></svg>Descargar</button>
           </div>
         </div>
       </section>
@@ -141,7 +244,7 @@
 
   <footer class="st-footer">
     <strong>SER&TEC SAS</strong>
-    <div style="opacity: 0.8; margin-top: 8px;">© 2026 · Geocodificador Híbrido · Tucumán, Argentina</div>
+    <div>© 2026 · Geocodificador Híbrido · Tucumán, Argentina</div>
   </footer>
 
   <script>
@@ -244,15 +347,18 @@
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
 
-    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = 'var(--st-amarillo)'; });
-    uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
-    uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.style.borderColor = ''; if (e.dataTransfer.files.length) procesarMultiplesArchivos(e.dataTransfer.files); });
+    let nombresArchivos = [], filtroRevisar = false;
+
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('is-drag'); });
+    uploadArea.addEventListener('dragleave', () => { uploadArea.classList.remove('is-drag'); });
+    uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('is-drag'); if (e.dataTransfer.files.length) procesarMultiplesArchivos(e.dataTransfer.files); });
     fileInput.addEventListener('change', e => { if (e.target.files.length) procesarMultiplesArchivos(e.target.files); });
 
     function detectarSeparador(linea) { const c = {'\t': (linea.match(/\t/g) || []).length, ',': (linea.match(/,/g) || []).length, ';': (linea.match(/;/g) || []).length}; let sep = '\t', max = 0; for (const [s, cnt] of Object.entries(c)) { if (cnt > max) { max = cnt; sep = s; } } return sep; }
 
     function procesarMultiplesArchivos(files) {
       datosGlobales = []; columnasOriginales = []; let arch = 0, total = files.length;
+      nombresArchivos = [...files].map(f => f.name);
       function procSig() {
         if (arch >= total) { finalizarCarga(); return; }
         const file = files[arch]; const reader = new FileReader();
@@ -289,15 +395,27 @@
       procSig();
     }
 
-    function finalizarCarga() { if (datosGlobales.length === 0) { alert('❌ No hay datos'); return; } mostrarPreviewInicial(); }
+    // Muestra en el área de carga qué archivo se leyó (o el error)
+    function mostrarArchivo(texto, error) {
+      uploadArea.classList.toggle('is-cargado', !error);
+      uploadArea.classList.toggle('is-error', !!error);
+      document.querySelector('#archivoIcono use').setAttribute('href', error ? '#i-alert' : '#i-check');
+      document.getElementById('archivoTexto').textContent = texto;
+    }
+
+    function finalizarCarga() {
+      if (datosGlobales.length === 0) { mostrarArchivo(`${nombresArchivos.join(', ')}: no se encontraron registros`, true); return; }
+      mostrarArchivo(`${nombresArchivos.join(', ')} · ${datosGlobales.length} registros`);
+      mostrarPreviewInicial();
+    }
     function detectarFormato(enc) { formatoDetectado = enc.some(h => h.includes('NRO_LIST_REAPER')) ? 'REAP' : enc.some(h => h.includes('NRO_ASIG_OML')) ? 'OML' : 'DESCONOCIDO'; }
     
     function mostrarPreviewInicial() {
       document.getElementById('previewInitialSection').classList.remove('hidden');
       document.getElementById('configSection').classList.remove('hidden');
       document.getElementById('previewSection').classList.add('hidden');
-      document.getElementById('formatDetected').textContent = `📋 ${formatoDetectado} | ${datosGlobales.length} registros`;
-      document.getElementById('totalRowCount').textContent = datosGlobales.length;
+      document.getElementById('formatDetected').innerHTML = `Formato <strong>${formatoDetectado}</strong> · <strong>${datosGlobales.length}</strong> registros`;
+      document.getElementById('totalRowCount').textContent = datosGlobales.length > 20 ? 'Mostrando los primeros 20' : '';
       const tabla = document.getElementById('previewInitialTable');
       tabla.innerHTML = '';
       datosGlobales.slice(0, 20).forEach(f => {
@@ -305,16 +423,23 @@
         tr.innerHTML = `<td>${f['NRO_SERVICIO'] || '-'}</td><td>${f['LOCALIDAD_SERVICIO'] || '-'}</td><td>${f['LATITUD'] || '(vacío)'}</td><td>${f['LONGITUD'] || '(vacío)'}</td>`;
         tabla.appendChild(tr);
       });
-      document.getElementById('modeLocal').style.background = 'rgba(230,168,23,0.12)';
-      modoSeleccionado = 'local';
-      document.getElementById('processBtn').disabled = false;
+      selectMode('local');
     }
 
     function selectMode(modo) {
       modoSeleccionado = modo;
-      document.getElementById('modeLocal').style.background = modo === 'local' ? 'rgba(230,168,23,0.12)' : '#fff';
-      document.getElementById('modeAPI').style.background = modo === 'api' ? 'rgba(230,168,23,0.12)' : '#fff';
-      document.getElementById('processBtn').disabled = false;
+      document.getElementById('modeLocal').setAttribute('aria-pressed', modo === 'local');
+      document.getElementById('modeAPI').setAttribute('aria-pressed', modo === 'api');
+      document.getElementById('processBtn').disabled = !modo;
+    }
+
+    function actualizarProgreso(hechos, total) {
+      const pct = Math.round(hechos / total * 100);
+      const seg = Math.ceil((total - hechos) * 1.2);
+      document.getElementById('progresoTexto').textContent = `Geocodificando ${hechos} de ${total}`;
+      document.getElementById('progresoResto').textContent = seg >= 60 ? `Quedan ~${Math.ceil(seg / 60)} min` : seg > 0 ? `Quedan ~${seg} seg` : '';
+      document.getElementById('progresoRelleno').style.width = pct + '%';
+      document.getElementById('progresoBarra').setAttribute('aria-valuenow', pct);
     }
 
     async function procesarDatos() {
@@ -323,6 +448,16 @@
       document.getElementById('previewSection').classList.remove('hidden');
 
       datosProcessados = [];
+      document.getElementById('previewTable').innerHTML = '';
+      document.getElementById('alertaLocalidades').classList.add('hidden');
+      document.getElementById('filtro').classList.add('hidden');
+
+      const enCurso = modoSeleccionado === 'api';
+      document.getElementById('progreso').classList.toggle('hidden', !enCurso);
+      document.getElementById('previewSection').classList.toggle('is-procesando', enCurso);
+      document.getElementById('btnCargarOtro').disabled = enCurso;
+      document.getElementById('btnDescargar').disabled = enCurso;
+      if (enCurso) actualizarProgreso(0, datosGlobales.length);
 
       for (const f of datosGlobales) {
         let latRaw = (f['LATITUD'] || '').replace(',', '.').trim();
@@ -364,20 +499,20 @@
           // Pausa para respetar el límite de 1 req/seg de Nominatim
           await new Promise(r => setTimeout(r, 1100));
 
-          // Feedback de progreso
-          document.getElementById('formatDetected').textContent =
-            `📋 ${formatoDetectado} | Geocodificando... ${datosProcessados.length + 1}/${datosGlobales.length}`;
-          document.getElementById('previewInitialSection').classList.remove('hidden');
-
         } else {
           // modo local (rápido)
           r = resolverPorTabla(f, 'Localidad');
         }
 
         datosProcessados.push({ ...f, 'LATITUD': r.lat, 'LONGITUD': r.lon, 'X': r.lon, 'Y': r.lat, modo: r.modo, alerta: !!r.alerta });
+        if (enCurso) actualizarProgreso(datosProcessados.length, datosGlobales.length);
       }
 
-      document.getElementById('previewInitialSection').classList.add('hidden');
+      document.getElementById('progreso').classList.add('hidden');
+      document.getElementById('previewSection').classList.remove('is-procesando');
+      document.getElementById('btnCargarOtro').disabled = false;
+      document.getElementById('btnDescargar').disabled = false;
+      filtroRevisar = false;
       mostrarPreview();
     }
 
@@ -411,15 +546,31 @@
         li.textContent = `${nombre} — ${cant} registro${cant > 1 ? 's' : ''}`;
         lista.appendChild(li);
       });
-      document.getElementById('alertaLocalidades').classList.toggle('hidden', !Object.keys(faltantes).length);
+      const hayAlertas = Object.keys(faltantes).length > 0;
+      document.getElementById('alertaLocalidades').classList.toggle('hidden', !hayAlertas);
+      document.getElementById('filtro').classList.toggle('hidden', !hayAlertas);
+      document.getElementById('filtroTodos').textContent = `Todos (${datosProcessados.length})`;
+      document.getElementById('filtroRevisar').textContent = `A revisar (${prov + sin})`;
+      filtrarResultados(filtroRevisar);
+    }
+
+    function filtrarResultados(soloRevisar) {
+      filtroRevisar = soloRevisar;
+      document.getElementById('filtroTodos').setAttribute('aria-pressed', !soloRevisar);
+      document.getElementById('filtroRevisar').setAttribute('aria-pressed', soloRevisar);
+      document.querySelectorAll('#previewTable tr:not(.st-row--alerta)').forEach(tr => tr.classList.toggle('hidden', soloRevisar));
     }
 
     function copiarLocalidades() {
       const items = [...document.querySelectorAll('#listaLocalidades li')].map(li => '- ' + li.textContent);
       const texto = 'Localidades a agregar al geocodificador:\n' + items.join('\n');
-      const btn = document.getElementById('btnCopiar');
+      const etiqueta = document.querySelector('#btnCopiar span');
+      const icono = document.querySelector('#btnCopiar use');
       navigator.clipboard.writeText(texto)
-        .then(() => { btn.textContent = '✅ Copiado'; setTimeout(() => { btn.textContent = '📋 Copiar lista'; }, 2000); })
+        .then(() => {
+          etiqueta.textContent = 'Copiado'; icono.setAttribute('href', '#i-check');
+          setTimeout(() => { etiqueta.textContent = 'Copiar lista'; icono.setAttribute('href', '#i-copy'); }, 2000);
+        })
         .catch(() => prompt('Copiá la lista:', texto));
     }
 
@@ -479,6 +630,8 @@
       document.getElementById('previewInitialSection').classList.add('hidden');
       document.getElementById('configSection').classList.add('hidden');
       document.getElementById('previewSection').classList.add('hidden');
+      uploadArea.classList.remove('is-cargado', 'is-error');
+      nombresArchivos = []; filtroRevisar = false;
     }
   </script>
 </body>
