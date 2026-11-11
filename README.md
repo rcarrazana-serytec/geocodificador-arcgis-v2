@@ -20,9 +20,9 @@ Portal web para geocodificación automática de archivos REAP y OML para ArcGIS 
 
 ## 🚀 Uso
 
-### Online (Netlify)
+### Online (Vercel)
 ```
-https://geocodificador-serytec.netlify.app
+https://geocodificador-arcgis-v2.vercel.app
 ```
 
 ### Local
@@ -42,13 +42,16 @@ geocodificador-arcgis/
 ├── package.json                           ← Dependencias
 ├── .gitignore                             ← Archivos ignorados
 │
+├── api/
+│   └── geocodificar.js                    ← Función Vercel (proxy Nominatim)
+│
 ├── public/
 │   ├── index.html                         ← Portal principal
 │   └── LogoST.png                         ← Logo SER&TEC
 │
-└── netlify/
+└── netlify/                               ← Versión anterior (Netlify, sin uso)
     └── functions/
-        └── geocodificar.js                ← API proxy Nominatim
+        └── geocodificar.js
 ```
 
 ---
@@ -126,7 +129,7 @@ Para agregar más localidades, edita `public/index.html` en la sección `coorden
 
 ## 🚢 Deployment
 
-### Netlify (Automático)
+### Vercel (Automático)
 
 ```bash
 # 1. Push a GitHub
@@ -134,14 +137,15 @@ git add .
 git commit -m "Update geocodificador"
 git push
 
-# 2. Netlify deploya automáticamente desde main branch
-# Accede a https://geocodificador-serytec.netlify.app
+# 2. Vercel deploya automáticamente:
+#    - main            → producción: https://geocodificador-arcgis-v2.vercel.app
+#    - otras ramas     → preview con URL propia (ver el deploy en GitHub/Vercel)
 ```
 
-### Configuración Netlify
+### Configuración Vercel
 - **Build command:** (ninguno, solo archivos estáticos)
 - **Publish directory:** `public`
-- **Functions:** `netlify/functions`
+- **Functions:** `api/` (se expone como `/api/geocodificar`)
 
 ---
 
@@ -149,7 +153,7 @@ git push
 
 No requiere variables de entorno. Las funciones serverless usan:
 - API Nominatim (pública, sin key)
-- CORS habilitado en Netlify
+- CORS habilitado en la función de Vercel
 
 ---
 
